@@ -17,3 +17,9 @@ p:nth-of-type(2) {
     background: 
     url(/images/fire.png) no-repeat center/contain;
 }
+
+p:nth-of-type(4) {
+    background:
+    url(/images/fire.png) no-repeat center/contain;
+    transform: rotate(180deg);
+    }
