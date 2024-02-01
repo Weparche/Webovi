@@ -4,7 +4,7 @@ body {
     color: #ffffff;
     background: 
     url(/images/pattern.png), 
-        url(/images/blossom.jpg);
+    url(/images/blossom.jpg);
       
 }
 
@@ -14,5 +14,6 @@ h1 {
 }
 
 p:nth-of-type(2) {
-    background: url(/images/fire.png) no-repeat center/contain;
+    background: 
+    url(/images/fire.png) no-repeat center/contain;
 }
