@@ -3,9 +3,7 @@ body {
     font-size: 16px;
     color: #ffffff;
     background: 
-    url(/images/pattern.png), 
-    url(/images/blossom.jpg);
-      
+    url(/images/pattern.png), url(/images/blossom.jpg);       
 }
 
 h1 {
@@ -13,13 +11,7 @@ h1 {
     text-align: center;
 }
 
-p:nth-of-type(2) {
-    background: 
-    url(/images/fire.png) no-repeat center/contain;
+section {
+    background: url(/images/fire.png) center bottom no-repeat;
+    background-size: 20%;
 }
-
-p:nth-of-type(4) {
-    background:
-    url(/images/fire.png) no-repeat center/contain;
-    transform: rotate(180deg);
-    }
