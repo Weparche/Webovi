@@ -1,0 +1,59 @@
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    background-image: url('/images/blur-clean.jpg'); /* Your rainy background image */
+    background-size: cover;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Hide overflow */
+}
+
+.container {
+    display: flex;
+}
+
+.letter-box {
+    width: 450px; /* Adjust width */
+    height: 350px; /* Adjust height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 100px;
+    border-radius: 0; /* Make edges sharp */
+    opacity: 0; /* Start with opacity 0 */
+    animation: slideIn 1.5s ease forwards;
+}
+
+.letter-box:nth-child(1) {
+    background-color: rgba(128, 128, 128, 0.5); /* Gray transparent */    
+}
+
+.letter-box:nth-child(2) {
+    background-color: rgba(255, 0, 0, 0.5); /* Red transparent */
+    animation-delay: 1.5s;
+}
+
+.letter-box:nth-child(3) {
+    background-color: rgba(255, 165, 0, 0.5); /* Orange transparent */
+    animation-delay: 3s;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-100vh); /* Start from top of screen */
+        opacity: 0; /* Start with opacity 0 */
+    }
+    to {
+        transform: translateY(0); /* Move to the final position */
+        opacity: 1; /* Fade in */
+    }
+}
+
+.letter {
+    font-size: 6rem; /* Adjust font size */
+    font-weight: bold;
+    color: white;
+}
