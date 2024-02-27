@@ -25,6 +25,7 @@ body {
     border-radius: 0; /* Make edges sharp */
     opacity: 0; /* Start with opacity 0 */
     animation: slideIn 1.5s ease forwards;
+    border: 4px solid white;
 }
 
 .letter-box:nth-child(1) {
@@ -53,7 +54,8 @@ body {
 }
 
 .letter {
-    font-size: 6rem; /* Adjust font size */
+    font-size: 10rem; /* Adjust font size */
     font-weight: bold;
     color: white;
+    font-family: Arial, Helvetica, sans-serif
 }
