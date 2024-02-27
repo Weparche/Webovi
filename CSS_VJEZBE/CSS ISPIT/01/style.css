@@ -1,0 +1,75 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.letter-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 8px solid red;
+    background-color: blue;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 0;
+    opacity: 0;
+    transform: translateY(100vh); /* Start from bottom of screen */
+    animation: slideIn 2s ease forwards;
+}
+
+.letter {
+    color: white;
+    font-weight: bold;
+    font-size: 2em;
+    display: block;
+}
+
+@keyframes slideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(100vh); /* Start from bottom of screen */
+    }
+   
+    100% {
+        opacity: 1;
+        transform: translateY(0); /* Final position */
+    }
+}
+
+.letter-circle:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.letter-circle:nth-child(2) {
+    animation-delay: 0.5s;
+}
+
+.letter-circle:nth-child(3) {
+    animation-delay: 1s;
+}
+
+.letter-circle:nth-child(4) {
+    animation-delay: 1.5s;
+}
+
+.letter-circle:nth-child(5) {
+    animation-delay: 2s;
+}
+
+.letter-circle:nth-child(6) {
+    animation-delay: 2.5s;
+}
+
+.letter-circle:nth-child(7) {
+    animation-delay: 3s;
+}
