@@ -111,19 +111,152 @@
     footer a{ color:#e6f0f0 }
     .legal{ font-size:13px; color:#b6c7c7 }
 
-    /* Responsive */
-    @media (max-width: 900px){
-      .hero-grid, .product{ grid-template-columns:1fr }
-      .grid-3{ grid-template-columns:1fr }
-      .grid-2{ grid-template-columns:1fr }
-    }
+    :root{
+  /* dimenzije “mini-playera” dok prati scroll */
+  --mini-w: min(420px, 88vw);
+  --mini-shadow: 0 12px 30px rgba(0,0,0,.35);
+}
+
+.yt-embed{
+  position:relative;
+  aspect-ratio:16/16;
+  background:#000;
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 10px 25px rgba(2,6,23,.12);
+}
+.yt-embed iframe,
+.yt-embed .yt-poster{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  border:0; display:block;
+  object-fit:cover; object-position:center;
+}
+.yt-embed iframe{
+  opacity:0; pointer-events:none; transition:opacity .2s ease;
+}
+.yt-embed .yt-poster{ z-index:2; }
+.yt-embed .yt-play{
+  position:absolute; inset:0; z-index:3;
+  display:grid; place-items:center;
+  background:linear-gradient(transparent, rgba(0,0,0,.25));
+  border:0; cursor:pointer;
+}
+.yt-embed.active iframe{ opacity:1; pointer-events:auto; }
+.yt-embed.active .yt-poster,
+.yt-embed.active .yt-play{ display:none; }
+.yt-embed .yt-play:hover svg circle{ fill:rgba(0,0,0,.7); }
+
+/* Mini-player (prati scroll) – pojavljuje se dok reproducira i element je izvan pogleda */
+.yt-embed.is-sticky{
+  position:fixed;
+  right:16px; bottom:16px;
+  width:var(--mini-w);
+  max-width:none;
+  aspect-ratio:16/9;
+  z-index:9999;
+  box-shadow:var(--mini-shadow);
+  border-radius:12px;
+}
+
+/* (opcionalno) brzi close gumb za mini-player – ako želiš, samo odkomentiraj HTML i stilove */
+/*
+.yt-close-fab{
+  position:absolute; top:6px; right:6px; z-index:4;
+  width:28px; height:28px; border-radius:50%;
+  border:0; background:rgba(0,0,0,.6); color:#fff; cursor:pointer;
+}
+*/
+
+/* --- Mobile & small screens --- */
+[id] { scroll-margin-top: 76px; } /* da sidra ne upadnu pod sticky header */
+
+.yt-embed{ aspect-ratio:16/16; } /* ispravi omjer videa (bio je 16/16) */
+.yt-embed .yt-play svg{ width:clamp(56px,18vw,96px); height:clamp(56px,18vw,96px); }
+
+@media (max-width: 900px){
+  .container{ padding: 0 12px; }
+  .hero-grid{ grid-template-columns:1fr; gap:18px; padding:32px 0; }
+  .product{ grid-template-columns:1fr; gap:18px; }
+  .grid-2, .grid-3{ grid-template-columns:1fr; }
+  .card{ padding:14px; }
+  .btn{ padding:14px 16px; font-weight:700; }
+  .cta-row{ flex-direction:column; gap:10px; }
+  .btn, .btn-ghost, .btn-primary{ width:100%; justify-content:center; }
+  .brand-logo{ width:180px; height:36px; font-size:14px; }
+}
+
+/* Kompaktna navigacija na mobitelu (vodoravno skrolanje, bez JS) */
+@media (max-width: 720px){
+  header.site .nav{ grid-template-columns: 1fr; row-gap:6px; padding:8px 0; }
+  nav{ display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:6px; }
+  nav a{ white-space:nowrap; padding:8px 10px; font-size:15px; }
+}
+
+/* Mini-player kad prati scroll – rub siguran za iPhone “notch” */
+.yt-embed.is-sticky{
+  bottom: max(16px, env(safe-area-inset-bottom));
+  right: max(16px, env(safe-area-inset-right));
+}
+
+/* --- PATCH: header da ne izlazi izvan screena na mobu --- */
+@media (max-width: 900px){
+  .brand-logo { max-width: 50%; height: 36px; }
+  header.site{
+    position: sticky;           /* ili 'fixed' ako tako već koristiš */
+    top: 0;
+    left: 0; right: 0;
+    width: 100%;                /* NE 100vw (to zna uzrokovat overflow) */
+    max-width: 100%;
+    box-sizing: border-box;
+    z-index: 999;
+    overflow-x: hidden;         /* odreži eventualni vodoravni višak */
+    /* sigurna zona za iPhone notch */
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+
+  /* Spriječi da djeca šire header zbog nowrap sadržaja */
+  header.site > *{ min-width: 0; }
+  header.site .nav, header.site nav{ min-width: 0; }
+
+
+}
+
+/* Manji logo na mobitelu */
+@media (max-width: 720px){
+  header.site .brand > img{
+    height: clamp(55px, 8vw, 42px); /* podešavaj po želji */
+    width: auto;                    /* čuva omjer */
+    max-width: 60vw;                /* zaštita od širenja headera */
+    display: block;
+  }
+  /* (po želji) malo smanji i tekst uz logo */
+  header.site .brand-logo{
+    font-size: 14px;
+    line-height: 1.2;
+  }
+}
+
+/* Smanji main za 5% na mobitelu */
+@media (max-width: 720px){
+  body{ overflow-x: hidden; }         /* zaštita od horiz. skrola */
+  main{
+    transform: scale(0.95);
+    transform-origin: top center;     /* skuplja od vrha prema dolje */
+  }
+}
+
+
+
+
   </style>
 </head>
 <body>
   <!-- Header -->
   <header class="site" role="banner">
     <div class="container nav" aria-label="Glavna navigacija">
-      <div class="brand"><img src="logo-w.png" alt="">by
+      <div class="brand"><img src="logo-w.png" alt="logo">
         <div class="brand-logo">dr. Miroslav Trkovnik</div>
         <div>
           <!-- <div class="brand-title">Farmakon</div> -->
@@ -155,7 +288,34 @@
       </div>
       <div class="hero-media">
         <figure class="hero-card" aria-labelledby="heroCaption">
-          <img src="heparmed.png" alt="Heparmed – med u staklenci, prirodni sastojci" width="50%"/>
+          <div class="yt-embed" style="width:100%">
+  <img class="yt-poster" src="/heparmed.png" alt="Heparmed – pogledaj video">
+  <button class="yt-play" type="button" aria-label="Pusti video">
+    <svg viewBox="0 0 64 64" width="72" height="72" aria-hidden="true">
+      <circle cx="32" cy="32" r="30" fill="rgba(0,0,0,.55)"></circle>
+      <polygon points="26,20 26,44 46,32" fill="#fff"></polygon>
+    </svg>
+  </button>
+
+  <!-- Tvoj iframe embed (bez autoplaya dok ne klikneš) -->
+  <iframe
+    src="https://www.youtube.com/embed/jtft0BR62ys?rel=0&modestbranding=1&playsinline=1"
+    title="YouTube video player"
+    frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerpolicy="strict-origin-when-cross-origin"
+    allowfullscreen
+    loading="lazy">
+  </iframe>
+</div>
+
+<noscript>
+  <p>
+    JavaScript je isključen. Pogledaj video ovdje:
+    <a href="https://youtu.be/jtft0BR62ys">YouTube link</a>.
+  </p>
+</noscript>
+
           <!-- <figcaption id="heroCaption" class="sr-only">Heparmed – med, ilustrativna fotografija proizvoda</figcaption> -->
         </figure>
         <!-- <div class="hero-badge" aria-label="Istaknuto">Kvaliteta & povjerenje</div> -->
@@ -171,7 +331,7 @@
 
       <div class="product" style="margin-top:22px">
         <div>
-          <img src="trki.png" alt="Heparmed – med proizvod" />
+          <img src="/trki.png" alt="Heparmed – med proizvod" />
         </div>
         <div>
           <h3 style="margin:0 0 6px">Heparmed Plus</h3>
@@ -205,7 +365,7 @@
 
       <div class="product" style="margin-top:36px">
         <div>
-          <img src="heparmed_p.png" alt="Heparmed Plus – dodatak prehrani" />
+          <img src="/heparmed_p.png" alt="Heparmed Plus – dodatak prehrani" />
         </div>
         <div>
           <h3 style="margin:0 0 6px">Dodatak prehrani</h3>
@@ -366,7 +526,8 @@
             *Napomene: dodaci prehrani nisu nadomjestak uravnoteženoj prehrani i zdravom načinu života. Informacije na ovoj stranici su informativne naravi i ne zamjenjuju savjet liječnika ili ljekarnika.
           </div>
         </div>
-        <div class="legal">© <span id="y"></span> Farmakon. Sva prava pridržana.</div>
+        <br>
+        <div class="legal">© <span id="y"></span> Farmakon by Weparche. Sva prava pridržana.</div>
       </div>
     </div>
   </footer>
@@ -390,6 +551,29 @@
         document.getElementById('cookie').style.display = 'none';
       });
     }
+
+    document.querySelectorAll('.yt-embed').forEach(wrap => {
+  const iframe = wrap.querySelector('iframe');
+  const btn = wrap.querySelector('.yt-play');
+  const poster = wrap.querySelector('.yt-poster');
+
+  function play() {
+    // Uključi autoplay i ostale flagove
+    const url = new URL(iframe.src);
+    url.searchParams.set('autoplay','1');
+    url.searchParams.set('rel','0');
+    url.searchParams.set('modestbranding','1');
+    url.searchParams.set('playsinline','1');
+    iframe.src = url.toString();
+
+    wrap.classList.add('active');
+  }
+
+  btn.addEventListener('click', play);
+  poster.addEventListener('click', play);
+});
+
+
   </script>
 
   <!-- Structured data (schema.org) -->
