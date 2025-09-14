@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Farmakon | Heparmed – med & Heparmed Plus</title>
+  <meta name="description" content="Službena stranica Farmakona (dr. Miroslav Trkovnik). Heparmed – med i Heparmed Plus: prirodna podrška kod kroničnog umora. Sigurno, jednostavno i učinkovito.*" />
+  <link rel="canonical" href="https://example.com/" />
+  <meta property="og:title" content="Farmakon | Heparmed – med & Heparmed Plus" />
+  <meta property="og:description" content="Heparmed – med i Heparmed Plus: prirodna podrška kod kroničnog umora.*" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://example.com/" />
+  <meta property="og:image" content="/assets/og-heparmed.jpg" />
+  <meta name="theme-color" content="#0f3d3e" />
+  <link rel="icon" href="/favicon.ico" />
+  <style>
+    :root{
+      --bg:#ffffff;          /* pozadina */
+      --text:#0f172a;        /* tamni tekst */
+      --muted:#475569;       /* sekundarni tekst */
+      --brand:#0f3d3e;       /* glavna boja (tamnozelena) */
+      --accent:#e3b341;      /* akcent (zlaćano) */
+      --ring:#e2e8f0;        /* linije */
+      --card:#f8fafc;        /* kartice */
+    }
+    *{ box-sizing:border-box }
+    html,body{ height:100% }
+    body{
+      margin:0; background:var(--bg); color:var(--text);
+      font-family: system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,Cantarell,Arial,sans-serif;
+      line-height:1.6; scroll-behavior:smooth;
+    }
+    a{ color:inherit; text-decoration:none }
+    .container{ max-width:1140px; margin:0 auto; padding:0 16px }
+
+    /* Header */
+    header.site{
+      position:sticky; top:0; z-index:50; background:rgba(255,255,255,.9);
+      backdrop-filter:saturate(160%) blur(6px);
+      border-bottom:1px solid var(--ring);
+    }
+    .nav{
+      display:grid; grid-template-columns: 1fr auto; align-items:center; gap:8px;
+      padding:12px 0;
+    }
+    .brand{ display:flex; align-items:center; gap:12px; }
+    .brand-logo{
+      width:240px; height:40px; border-radius:10px; display:grid; place-items:center;
+      background: conic-gradient(from 180deg at 50% 50%, #0f3d3e, #125c5e, #0f3d3e);
+      color:#fff; font-weight:800; letter-spacing:.5px;
+    }
+    .brand-title{ font-weight:800; font-size:18px; letter-spacing:.2px }
+
+    nav a{ padding:10px 12px; border-radius:10px; font-weight:600; color:#0f3d3e }
+    nav a:hover{ background:var(--card) }
+
+    /* Hero */
+    .hero{
+      position:relative; overflow:hidden; isolation:isolate;
+      background:
+        radial-gradient(80% 60% at 80% -10%, #e3b34122 0%, transparent 60%),
+        radial-gradient(80% 60% at -10% 10%, #0f3d3e11 0%, transparent 60%),
+        linear-gradient(180deg, #ffffff 0%, #f7faf9 100%);
+    }
+    .hero-grid{ display:grid; grid-template-columns: 1.1fr .9fr; gap:28px; align-items:center; padding:56px 0 }
+    .kicker{ color:var(--brand); font-weight:800; letter-spacing:.08em; text-transform:uppercase; font-size:12px }
+    h1.hero-title{ font-size: clamp(28px, 4.5vw, 52px); line-height:1.1; margin:8px 0 12px; }
+    .hero-lead{ color:var(--muted); font-size: clamp(14px, 1.6vw, 18px) }
+
+    .cta-row{ display:flex; gap:12px; margin-top:18px; flex-wrap:wrap }
+    .btn{ display:inline-flex; align-items:center; gap:10px; padding:12px 16px; border-radius:12px; font-weight:700; border:1px solid transparent }
+    .btn-primary{ background:var(--brand); color:#fff }
+    .btn-primary:hover{ opacity:.95 }
+    .btn-ghost{ border-color:var(--ring); background:#fff }
+
+    .hero-media{ position:relative; }
+    .hero-card{
+      background:#fff; border:1px solid var(--ring); border-radius:16px; overflow:hidden;
+      box-shadow: 0 8px 30px rgba(15,61,62,.08);
+    }
+    .hero-card img{ display:block; width:100%; height: 100%; object-fit:cover }
+    .hero-badge{
+      position:absolute; right:-8px; bottom:-8px; background:var(--brand); color:#fff;
+      padding:10px 14px; border-radius:14px; font-weight:700; box-shadow:0 6px 22px rgba(15,61,62,.25)
+    }
+
+    /* Sections */
+    section{ padding:56px 0; border-top:1px solid var(--ring) }
+    h2{ font-size: clamp(22px, 3.5vw, 36px); margin:0 0 8px }
+    .lead{ color:var(--muted) }
+
+    .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px }
+    .grid-2{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px }
+    .card{ background:var(--card); border:1px solid var(--ring); border-radius:14px; padding:18px }
+    .check{ display:flex; align-items:flex-start; gap:10px; }
+    .check svg{ flex:0 0 20px }
+
+    /* Product highlight */
+    .product{
+      display:grid; grid-template-columns: .9fr 1.1fr; gap:28px; align-items:start;
+    }
+    .product img{ width:100%; border-radius:14px; border:1px solid var(--ring); box-shadow:0 8px 30px rgba(0,0,0,.08) }
+
+    /* FAQ */
+    details{ background:#fff; border:1px solid var(--ring); border-radius:12px; padding:14px 16px }
+    details + details{ margin-top:10px }
+    details summary{ cursor:pointer; font-weight:700 }
+
+    /* Footer */
+    footer{ background:#0b2f30; color:#e6f0f0; padding:36px 0; }
+    footer a{ color:#e6f0f0 }
+    .legal{ font-size:13px; color:#b6c7c7 }
+
+    /* Responsive */
+    @media (max-width: 900px){
+      .hero-grid, .product{ grid-template-columns:1fr }
+      .grid-3{ grid-template-columns:1fr }
+      .grid-2{ grid-template-columns:1fr }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="site" role="banner">
+    <div class="container nav" aria-label="Glavna navigacija">
+      <div class="brand"><img src="logo-w.png" alt="">by
+        <div class="brand-logo">dr. Miroslav Trkovnik</div>
+        <div>
+          <!-- <div class="brand-title">Farmakon</div> -->
+          <div style="font-size:16px; color:var(--muted)"></div>
+        </div>
+      </div>
+      <nav>
+        <a href="#pocetna">Početna</a>
+        <a href="#proizvodi">Proizvodi</a>
+        <a href="#kako-djeluje">Kako djeluje</a>
+        <a href="#o-nama">O nama</a>
+        <a href="#faq">Česta pitanja</a>
+        <a href="#kontakt">Kontakt</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <main id="pocetna" class="hero" role="main">
+    <div class="container hero-grid">
+      <div>
+        <div class="kicker">Prirodna podrška*</div>
+        <h1 class="hero-title">Heparmed Plus</h1>
+        <p class="hero-lead">Glavni proizvodi tvrtke <strong>Farmakon</strong> (dr. Miroslav Trkovnik). Razvijeni s naglaskom na jednostavnost, sigurnost i kvalitetu.*</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#proizvodi" aria-label="Pogledaj proizvode">Pogledaj proizvode</a>
+          <a class="btn btn-ghost" href="#kontakt" aria-label="Kontaktiraj nas">Kontakt</a>
+        </div>
+      </div>
+      <div class="hero-media">
+        <figure class="hero-card" aria-labelledby="heroCaption">
+          <img src="/heparmed.png" alt="Heparmed – med u staklenci, prirodni sastojci" width="50%"/>
+          <!-- <figcaption id="heroCaption" class="sr-only">Heparmed – med, ilustrativna fotografija proizvoda</figcaption> -->
+        </figure>
+        <!-- <div class="hero-badge" aria-label="Istaknuto">Kvaliteta & povjerenje</div> -->
+      </div>
+    </div>
+  </main>
+
+  <!-- Proizvodi -->
+  <section id="proizvodi" aria-labelledby="proizvodiTitle">
+    <div class="container">
+      <h2 id="proizvodiTitle">Proizvodi</h2>
+      <p class="lead">Heparmed Plus (dodatak prehrani). U nastavku pogledajte osnovne informacije o proizvodima.</p>
+
+      <div class="product" style="margin-top:22px">
+        <div>
+          <img src="/trki.png" alt="Heparmed – med proizvod" />
+        </div>
+        <div>
+          <h3 style="margin:0 0 6px">Heparmed Plus</h3>
+          <p style="color:var(--muted)">Prirodni pčelinji proizvod uz pažljivo odabrane sastojke. Uživajte u blagom okusu i svakodnevnoj podršci organizmu.*</p>
+          <div class="grid-2" style="margin-top:12px">
+            <div class="card">
+              <div class="check">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 7L9 18l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <div>
+                  <strong>Prirodan odabir</strong>
+                  <div style="color:var(--muted)">Med provjerene kvalitete.*</div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="check">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 7L9 18l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <div>
+                  <strong>Jednostavna upotreba</strong>
+                  <div style="color:var(--muted)">Za svakodnevnu rutinu.*</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- <div class="cta-row" style="margin-top:14px">
+            <a class="btn btn-primary" href="#kontakt">Pošalji upit</a>
+            <a class="btn btn-ghost" href="#kako-djeluje">Saznaj više</a>
+          </div> -->
+        </div>
+      </div>
+
+      <div class="product" style="margin-top:36px">
+        <div>
+          <img src="/heparmed_p.png" alt="Heparmed Plus – dodatak prehrani" />
+        </div>
+        <div>
+          <h3 style="margin:0 0 6px">Dodatak prehrani</h3>
+          <div style="color:var(--muted)">
+            <p>Heparmed Plus je siguran, prirodan i učinkovit dodatak prehrani koji pomaže kod kroničnog umora i smanjenih mentalnih sposobnosti koje on uzrokuje i pomaže vam da brže dosegnete željeno stanje organizma.</p>
+            <p>Tri prirodne komponente Heparmeda Plus sinergijski pokreću procese regeneracije u tijelu i pomažu da brže prevladate kronični umor i iscrpljenost, te preveniraju bolesti jetre koje utječu na vašu funkcionalnu svakodnevicu.</p>
+          </div>
+          <div class="cta-row" style="margin-top:6px">
+            <a class="btn btn-primary" href="#kontakt">Pošalji upit</a>
+            <a class="btn btn-ghost" href="#kako-djeluje">Kako djeluje?</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Kako djeluje -->
+  <section id="kako-djeluje" aria-labelledby="djelujeTitle">
+    <div class="container">
+      <h2 id="djelujeTitle">Kako djeluje</h2>
+      <p class="lead">Tri prirodne komponente djeluju sinergijski.* U nastavku su mjesta za opis svake komponente.</p>
+
+      <div class="grid-3" style="margin-top:16px">
+        <div class="card">
+          <h4 style="margin-top:0">Energetska komponenta<span style="opacity:.6"></span></h4>
+          <p style="color:var(--muted)">Koristi jednostavne šećere koji se brzo apsorbiraju i koje jetra pretvara u glikogen (kratkoročna zaliha energije). Time može pomoći kod osjećaja umora i iscrpljenosti kao brzi, blagi izvor energije.</p>
+        </div>
+        <div class="card">
+          <h4 style="margin-top:0">Vitaminsko-mineralna komponenta <span style="opacity:.6"></span></h4>
+          <p style="color:var(--muted)"><strong>B-kompleks (B1, B2, B3, B5, B6, B12) – </strong>sudjeluju u pretvorbi hrane u energiju i doprinose smanjenju umora i iscrpljenosti.
+
+<strong>Vitamin C i E + cink i selen –</strong> doprinose zaštiti stanica od oksidativnog stresa, važnoj i za jetrene stanice.
+<br>
+<strong>Kolin –</strong> doprinosi održavanju normalne funkcije jetre i normalnom metabolizmu masti.
+<br>
+<strong>Magnezij</strong> – podupire normalan metabolizam energije i rad mišića/živaca.</p>
+        </div>
+        <div class="card">
+          <h4 style="margin-top:0">Ekstrakti ljekovitog bilja <span style="opacity:.6"></span></h4>
+          <p style="color:var(--muted)"><strong>Sikavica (Silybum marianum – silimarin):</strong> antioksidativno djelovanje; doprinosi zaštiti jetrenih stanica i normalnoj funkciji jetre.
+
+<strong>Artičoka (Cynara scolymus – cinarin):</strong> podržava stvaranje i protok žuči, olakšava probavu masti.
+
+<strong>Kurkuma (Curcuma longa – kurkuminoidi):</strong> doprinosi normalnoj funkciji jetre i zaštiti od oksidativnog stresa.
+
+<strong>Maslačak (Taraxacum officinale):</strong> tradicionalno za probavu i žučne funkcije.
+
+<strong>Zajedno:</strong> cilj je potpora detoksikacijskim putevima jetre, boljoj probavi masti i smanjenju oksidativnog stresa.</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:18px">
+        <div class="card">
+          <strong>Način upotrebe</strong>
+          <p style="color:var(--muted)">Primjena prema uputama na pakiranju. Ne preporučuje se prekoračiti preporučenu dnevnu dozu. Dodatak prehrani nije nadomjestak ili zamjena uravnoteženoj prehrani.*</p>
+        </div>
+        <div class="card">
+          <strong>Napomena</strong>
+          <p style="color:var(--muted)">Osobe koje uzimaju lijekove, trudnice i dojilje trebaju se prije upotrebe posavjetovati s liječnikom. Čuvati izvan dohvata djece.*</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- O nama -->
+  <section id="o-nama" aria-labelledby="onamaTitle">
+    <div class="container">
+      <h2 id="onamaTitle">Farmakon — dr. Miroslav Trkovnik</h2>
+      <div class="grid-2" style="margin-top:12px; align-items:start">
+        <div>
+          <p class="lead">Farmakon je mala, posvećena tvrtka usmjerena na proizvode temeljene na prirodnim sastojcima i jednostavnoj, odgovornoj primjeni.*</p>
+          <ul style="color:var(--muted); padding-left:18px">
+            <li>Fokus na kvalitetu i sigurnost proizvoda*</li>
+            <li>Jasne upute i podrška korisnicima*</li>
+            <li>Transparentna komunikacija o sastojcima*</li>
+          </ul>
+        </div>
+        <div class="card">
+          <strong>Osnovni podaci</strong>
+          <div style="margin-top:8px; color:var(--muted)">
+            Tvrtka: <strong>Farmakon</strong><br />
+            Osnivač/odgovorna osoba: <strong>dr. Miroslav Trkovnik</strong><br />
+            Sjedište: <em>upisati adresu</em><br />
+            OIB: <em>upisati OIB</em>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" aria-labelledby="faqTitle">
+    <div class="container">
+      <h2 id="faqTitle">Česta pitanja</h2>
+
+      <details>
+        <summary>Je li Heparmed Plus lijek?</summary>
+        <p style="color:var(--muted)">Ne. Heparmed Plus je <strong>dodatak prehrani</strong>. Dodaci prehrani nisu zamjena uravnoteženoj prehrani i zdravom načinu života.</p>
+      </details>
+      <details>
+        <summary>Kako čuvati proizvode?</summary>
+        <p style="color:var(--muted)">Na suhom i tamnom mjestu, izvan dohvata male djece. Poštujte upute na pakiranju.</p>
+      </details>
+      <details>
+        <summary>Mogu li proizvode koristiti uz postojeću terapiju?</summary>
+        <p style="color:var(--muted)">Osobe koje uzimaju lijekove, trudnice i dojilje trebaju se prije upotrebe posavjetovati s liječnikom ili ljekarnikom.</p>
+      </details>
+    </div>
+  </section>
+
+  <!-- Kontakt -->
+  <section id="kontakt" aria-labelledby="kontaktTitle">
+    <div class="container">
+      <h2 id="kontaktTitle">Kontakt i narudžbe</h2>
+      <p class="lead">Ispunite obrazac ili nam pišite/pozovite izravno. Rado ćemo odgovoriti na sva pitanja.</p>
+
+      <div class="grid-2" style="margin-top:14px">
+        <form class="card" onsubmit="event.preventDefault(); alert('Hvala! Vaša poruka je zaprimljena.');">
+          <label>Ime i prezime<br />
+            <input required type="text" name="name" placeholder="Vaše ime" style="width:100%; padding:10px 12px; border:1px solid var(--ring); border-radius:10px; margin-top:6px" />
+          </label>
+          <div style="height:10px"></div>
+          <label>E‑pošta<br />
+            <input required type="email" name="email" placeholder="ime@domena.hr" style="width:100%; padding:10px 12px; border:1px solid var(--ring); border-radius:10px; margin-top:6px" />
+          </label>
+          <div style="height:10px"></div>
+          <label>Poruka<br />
+            <textarea required name="message" rows="5" placeholder="Vaše pitanje ili narudžba" style="width:100%; padding:10px 12px; border:1px solid var(--ring); border-radius:10px; margin-top:6px"></textarea>
+          </label>
+          <div class="cta-row" style="margin-top:12px">
+            <button class="btn btn-primary" type="submit">Pošalji poruku</button>
+            <a class="btn btn-ghost" href="mailto:info@farmakon.hr">Pošalji e‑poštu</a>
+          </div>
+        </form>
+        <div class="card">
+          <strong>Kontakt podaci</strong>
+          <p style="color:var(--muted)">
+            E‑pošta: <a href="mailto:info@farmakon.hr">info@farmakon.hr</a><br />
+            Telefon: <a href="tel:+38500000000">+385 00 000 000</a><br />
+            Adresa: <em>upisati adresu</em>
+          </p>
+          <strong>Radno vrijeme</strong>
+          <p style="color:var(--muted)">Pon–Pet 9:00–17:00</p>
+          <strong>Društvene mreže</strong>
+          <p style="color:var(--muted)"><a href="#">Facebook</a> · <a href="#">Instagram</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer role="contentinfo">
+    <div class="container">
+      <div style="display:grid; grid-template-columns:1fr auto; gap:12px; align-items:center;">
+        <div>
+          <strong>Farmakon</strong> — dr. Miroslav Trkovnik
+          <div class="legal" style="margin-top:6px">
+            *Napomene: dodaci prehrani nisu nadomjestak uravnoteženoj prehrani i zdravom načinu života. Informacije na ovoj stranici su informativne naravi i ne zamjenjuju savjet liječnika ili ljekarnika.
+          </div>
+        </div>
+        <div class="legal">© <span id="y"></span> Farmakon. Sva prava pridržana.</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Cookie obavijest (jednostavna) -->
+  <div id="cookie" style="position:fixed; bottom:16px; left:16px; right:16px; z-index:60; display:none">
+    <div style="max-width:840px; margin:0 auto; background:#0b2f30; color:#e6f0f0; border-radius:12px; padding:14px 16px; box-shadow:0 8px 30px rgba(0,0,0,.25)">
+      Ova stranica koristi nužne kolačiće za osnovnu funkcionalnost. <button id="cookieOk" class="btn btn-primary" style="margin-left:8px">U redu</button>
+    </div>
+  </div>
+
+  <script>
+    // godina u footeru
+    document.getElementById('y').textContent = new Date().getFullYear();
+    // cookie banner
+    const ckey = 'cookie-ok';
+    if(!localStorage.getItem(ckey)){
+      document.getElementById('cookie').style.display = 'block';
+      document.getElementById('cookieOk').addEventListener('click',()=>{
+        localStorage.setItem(ckey,'1');
+        document.getElementById('cookie').style.display = 'none';
+      });
+    }
+  </script>
+
+  <!-- Structured data (schema.org) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Farmakon",
+    "url": "https://example.com/",
+    "logo": "https://example.com/assets/logo.png",
+    "founder": {
+      "@type": "Person",
+      "name": "Miroslav Trkovnik",
+      "jobTitle": "Doctor"
+    },
+    "brand": {
+      "@type": "Brand",
+      "name": "Heparmed"
+    },
+    "makesOffer": [
+      {
+        "@type": "Product",
+        "name": "Heparmed — med",
+        "description": "Prirodni pčelinji proizvod.*",
+        "image": "https://example.com/assets/heparmed-med.jpg"
+      },
+      {
+        "@type": "Product",
+        "name": "Heparmed Plus — dodatak prehrani",
+        "description": "Siguran, prirodan i učinkovit dodatak prehrani.*",
+        "image": "https://example.com/assets/heparmed-plus.jpg"
+      }
+    ]
+  }
+  </script>
+</body>
+</html>
