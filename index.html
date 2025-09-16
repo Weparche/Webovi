@@ -365,6 +365,23 @@ body{ padding-top: var(--header-h); }
   }
 }
 
+    /* Mobile: naslovi top + center, jedan ispod drugog */
+@media (max-width: 900px){
+  .banner-inner{
+    grid-template-columns: 1fr;        /* jedna kolona */
+    row-gap: clamp(6px, 2.5vw, 12px);  /* razmak između h2 */
+    align-items: start;                 /* poravnaj sadržaj pri vrhu */
+    justify-items: center;              /* centriraj vodoravno */
+    padding-top: clamp(12px, 6vw, 28px);/* odmak od gornjeg ruba */
+    padding-inline: 12px;
+    padding-bottom: clamp(60px, 12vw, 100px); /* mjesta da CTA na dnu ne preklopi */
+  }
+  .banner-left, .banner-right{
+    text-align: center;
+    margin: 0;
+  }
+}
+
 
 
 
