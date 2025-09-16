@@ -365,20 +365,24 @@ body{ padding-top: var(--header-h); }
   }
 }
 
-    /* Mobile: naslovi top + center, jedan ispod drugog */
+   /* Mobile: naslovi skroz na vrhu, centrirani, jedan ispod drugog */
 @media (max-width: 900px){
   .banner-inner{
-    grid-template-columns: 1fr;        /* jedna kolona */
-    row-gap: clamp(6px, 2.5vw, 12px);  /* razmak između h2 */
-    align-items: start;                 /* poravnaj sadržaj pri vrhu */
-    justify-items: center;              /* centriraj vodoravno */
-    padding-top: clamp(12px, 6vw, 28px);/* odmak od gornjeg ruba */
+    grid-template-columns: 1fr;       /* jedna kolona */
+    row-gap: clamp(4px, 1.5vw, 10px); /* mali razmak između h2 */
+    place-content: start center;      /* GORE + centar po širini */
+    justify-items: center;            /* centriraj stavke */
+    padding-top: 0;                   /* bez unutarnjeg razmaka gore */
+    margin-top: 0;
     padding-inline: 12px;
-    padding-bottom: clamp(60px, 12vw, 100px); /* mjesta da CTA na dnu ne preklopi */
+    padding-bottom: clamp(56px, 12vw, 96px); /* mjesta za CTA pri dnu */
   }
   .banner-left, .banner-right{
     text-align: center;
     margin: 0;
+  }
+  .banner-title{
+    margin: 0;                        /* ukloni default top margin h2 */
   }
 }
 
