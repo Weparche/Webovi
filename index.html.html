@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Šetanje pasa s GoPro kamerom — Live praćenje u aplikaciji</title>
+  <meta name="description" content="Profesionalna usluga šetanja pasa uz GoPro kameru i live praćenje preko mobilne aplikacije. Sigurnost, transparentnost i mirna glava vlasnika." />
+  <style>
+    :root{
+      --bg:#f6f7f9; --card:#ffffff; --ink:#0f172a; --muted:#64748b;
+      --accent:#2563eb; --accent-2:#1e40af; --ok:#16a34a; --warn:#f59e0b;
+      --danger:#dc2626; --ring:#e5e7eb; --radius:18px; --shadow:0 10px 30px rgba(2,6,23,.08);
+      --beige:#f5e6c8; --brown:#8b5e3c; --brown-2:#6b4226;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial}
+    html{scroll-behavior:smooth}
+
+    /* Layout */
+    .container{max-width:1100px;margin:0 auto;padding:24px}
+    .grid{display:grid;gap:20px}
+    .grid-2{grid-template-columns: 1fr;}
+    @media(min-width:900px){ .grid-2{grid-template-columns: 1.2fr .8fr;} }
+    .grid-3{grid-template-columns: 1fr;}
+    @media(min-width:900px){ .grid-3{grid-template-columns: repeat(3, 1fr);} }
+
+    /* Header — floating */
+    header.site{
+      position:fixed; top:0; left:0; right:0; z-index:1000;
+      background:linear-gradient(180deg,rgba(0,0,0,.45),rgba(0,0,0,.15));
+      backdrop-filter:blur(8px);
+      border-bottom:1px solid rgba(255,255,255,.25);
+      color:#fff;
+    }
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;max-width:1100px;margin:0 auto}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand .logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--beige),var(--brown));display:grid;place-items:center;color:#111;font-weight:800;box-shadow:var(--shadow)}
+    .brand h1{font-size:18px;margin:0;color:#fff}
+    .nav a{color:#fff;text-decoration:none;margin-left:18px;font-weight:600;opacity:.95}
+    .nav a:hover{opacity:1;text-decoration:underline}
+    .nav .cta{margin-left:20px}
+
+    /* Buttons — PRODUCT PALETA (bež→smeđa) */
+    .btn{display:inline-block;padding:12px 18px;border-radius:12px;border:1px solid transparent;cursor:pointer;text-decoration:none;font-weight:700;letter-spacing:.2px;transition:transform .12s ease, filter .12s ease}
+    .btn:active{transform:translateY(1px)}
+    /* primarni = gradient product */
+    .btn.primary{
+      background:linear-gradient(135deg,var(--beige),var(--brown));
+      color:#111; border-color:#d8c6a4;
+      box-shadow:0 8px 20px rgba(139,94,60,.25);
+    }
+    .btn.primary:hover{filter:brightness(.98)}
+    /* ghost = outline product */
+    .btn.ghost{
+      background:#fff; color:var(--brown-2); border:1px solid var(--brown);
+    }
+    .btn.ghost:hover{background:#fff7ed}
+
+    /* Spacer ispod fixed headera */
+    .spacer{height:68px}
+
+    /* HERO BANNER (prvi) */
+    .hero-banner{
+      position:relative;width:100%;height:800px;overflow:hidden;
+      background:url('/banner.jpg') center/cover no-repeat;
+    }
+    .hero-banner::after{
+      content:"";position:absolute;inset:0;
+      background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.45));
+    }
+    .hero-inner{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:28px 20px}
+    .hero-title{
+      margin:8px auto 0;text-align:center;font-weight:900;
+      font-size:clamp(28px,5vw,56px);line-height:1.1;
+      background:linear-gradient(90deg,var(--beige),var(--brown));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; color:transparent;
+      padding:8px 16px;
+    }
+    .paw-wrap{display:flex;justify-content:center;align-items:center;margin:0 auto 8px}
+    .paw-btn{display:inline-grid;place-items:center;cursor:pointer;text-decoration:none;position:relative}
+    .paw-svg{width:160px;height:160px;filter:drop-shadow(0 10px 25px rgba(0,0,0,.35));transition:transform .15s ease, filter .15s ease}
+    .paw-btn:hover .paw-svg{transform:scale(1.06)}
+    .paw-text{position:absolute;transform:translateY(54px);font-weight:800;font-size:18px;color:#fff;letter-spacing:.3px;text-shadow:0 2px 6px rgba(0,0,0,.6);pointer-events:none;user-select:none}
+
+    /* ORIGINALNI HERO (drugi) */
+    .hero{padding:42px 24px 18px}
+    .hero .container{display:grid;gap:28px;align-items:center}
+    @media(min-width:900px){ .hero .container{grid-template-columns: 1.1fr .9fr;} }
+    .tag{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:#fff;border:1px solid var(--ring);color:var(--muted);font-size:13px}
+    .hero h2{font-size:clamp(28px, 4vw, 44px);line-height:1.15;margin:14px 0 8px}
+    .hero p{color:var(--muted);margin:0 0 18px}
+    .phone{width:100%;max-width:360px;margin:0 auto;background:#000;border-radius:28px;padding:10px;border:6px solid #111;box-shadow:var(--shadow)}
+    .screen{aspect-ratio:9/16;background:#111;border-radius:18px;overflow:hidden;position:relative}
+    .live-badge{position:absolute;top:10px;left:10px;background:#dc2626;color:#fff;font-size:12px;padding:4px 8px;border-radius:999px;display:flex;gap:6px;align-items:center}
+    .dot{width:8px;height:8px;border-radius:50%;background:#fff;opacity:.9}
+    .hud{position:absolute;bottom:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;color:#fff;font-size:12px}
+    .hud .chip{background:rgba(255,255,255,.12);padding:6px 10px;border-radius:999px;backdrop-filter:blur(2px)}
+    .fake-stream{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=1470&auto=format&fit=crop') center/cover no-repeat;filter:contrast(1.06) saturate(1.05)}
+
+    /* Ostale sekcije */
+    .section{padding:48px 24px}
+    .section h3{font-size:26px;margin:0 0 8px}
+    .section p.lead{color:var(--muted);margin:0 0 18px}
+    .card{background:var(--card);border:1px solid var(--ring);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+    .icon{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#eef2ff;color:var(--brown-2)}
+    .feature{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start}
+    .feature h4{margin:2px 0 6px}
+    .muted{color:var(--muted)}
+    .steps{counter-reset:step}
+    .step{position:relative;padding-left:54px}
+    .step:not(:last-child){margin-bottom:16px}
+    .step:before{counter-increment:step;content:counter(step);position:absolute;left:0;top:0;width:36px;height:36px;border-radius:10px;background:#fff;border:1px solid var(--ring);display:grid;place-items:center;font-weight:700}
+    .map{height:280px;border-radius:16px;background:linear-gradient(180deg,#c7d2fe,#e0e7ff);border:1px solid var(--ring);position:relative;overflow:hidden}
+    .map .pin{position:absolute;left:48%;top:38%;transform:translate(-50%,-100%)}
+    .price{font-size:36px;font-weight:800}
+    .plan{display:flex;flex-direction:column;gap:14px}
+    .plan ul{margin:0;padding-left:18px}
+    .stars{letter-spacing:2px}
+    details{background:#fff;border:1px solid var(--ring);border-radius:14px;padding:12px}
+    details+details{margin-top:10px}
+    summary{cursor:pointer;font-weight:600}
+    footer{border-top:1px solid var(--ring);padding:28px 24px;color:var(--muted)}
+    .row{display:flex;flex-wrap:wrap;gap:10px}
+    .center{text-align:center}
+    .right{text-align:right}
+    .mt-2{margin-top:12px}
+    .mt-3{margin-top:18px}
+    .mt-4{margin-top:24px}
+
+    /* VIDEO FRAME (bijeli okvir koji prati video) */
+    .video-frame{
+      background:#fff; border:1px solid var(--ring);
+      border-radius:16px; padding:10px;
+      box-shadow:var(--shadow);
+    }
+    .video-outer{
+      position:relative; width:50%;
+      /* 16:9 responsive okvir */
+      aspect-ratio:9/16;
+      overflow:hidden; border-radius:10px;
+      background:#000;
+    }
+    .video-outer video{
+      position:absolute; inset:0; width:100%; height:100%;
+      object-fit:cover; border:0; display:block;
+    }
+  </style>
+</head>
+<body>
+  <!-- Fixed header -->
+  <header class="site">
+    <nav class="nav">
+      <div class="brand">
+  <img class="logo" src="logo.png" alt="GoPaws" width="98" height="98" decoding="async">
+  <h1>GoPaws — šetanje pasa s GoPro kamerom</h1>
+</div>
+      <div class="row">
+        <a href="#benefiti">Benefiti</a>
+        <a href="#kako">Kako radi</a>
+        <a href="#cijene">Cijene</a>
+        <a href="#demo">Šape uživo</a><!-- NOVO u meniju -->
+        <a href="#faq">Pitanja</a>
+        <a href="#kontakt" class="btn primary cta">Rezerviraj</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Razmak ispod headera -->
+  <div class="spacer"></div>
+
+  <!-- HERO 1: Banner sa šapom -->
+  <section class="hero-banner" id="pocetak" aria-label="Hero banner">
+    <div class="hero-inner">
+      <h1 class="hero-title">GoPaws – Šetnje pasa uživo</h1>
+      <div class="paw-wrap">
+        <a class="paw-btn" href="#demo" aria-label="Šape uživo">
+          <svg class="paw-svg" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+            <defs>
+              <linearGradient id="pawGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#f5e6c8"/>
+                <stop offset="100%" stop-color="#8b5e3c"/>
+              </linearGradient>
+            </defs>
+            <path d="M128 150c-28 0-58 14-58 38 0 22 22 32 58 32s58-10 58-32c0-24-30-38-58-38z" fill="url(#pawGrad)"/>
+            <ellipse cx="80" cy="120" rx="22" ry="28" fill="url(#pawGrad)"/>
+            <ellipse cx="116" cy="108" rx="22" ry="28" fill="url(#pawGrad)"/>
+            <ellipse cx="140" cy="108" rx="22" ry="28" fill="url(#pawGrad)"/>
+            <ellipse cx="176" cy="120" rx="22" ry="28" fill="url(#pawGrad)"/>
+            <ellipse cx="128" cy="170" rx="38" ry="10" fill="rgba(255,255,255,.18)"/>
+            <path d="M128 150c-28 0-58 14-58 38 0 22 22 32 58 32s58-10 58-32c0-24-30-38-58-38z
+                     M80 148c-16-2-30-18-30-34 0-16 12-28 26-26 16 2 30 18 30 34 0 16-12 28-26 26z
+                     M116 136c-16-2-30-18-30-34 0-16 12-28 26-26 16 2 30 18 30 34 0 16-12 28-26 26z
+                     M140 136c-16-2-30-18-30-34 0-16 12-28 26-26 16 2 30 18 30 34 0 16-12 28-26 26z
+                     M176 148c-16-2-30-18-30-34 0-16 12-28 26-26 16 2 30 18 30 34 0 16-12 28-26 26z"
+                  fill="none" stroke="rgba(0,0,0,.35)" stroke-width="2"/>
+          </svg>
+          <span class="paw-text">Šape uživo</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- HERO 2: Tvoj originalni hero s mobitel-mockom -->
+  <section class="hero">
+    <div class="container">
+      <div>
+        <span class="tag">🔴 Live praćenje • GoPro 11/12 • GPS ruta</span>
+        <h2>Vidite svaku avanturu vašeg psa — uživo, iz prve šape.</h2>
+        <p>Profesionalna šetnja uz GoPro kameru montiranu na prsni pojas te live prijenos u mobilnoj aplikaciji. Transparentno, sigurno i zabavno za cijelu obitelj.</p>
+        <div class="row mt-2">
+          <a class="btn primary" href="#kontakt">Rezerviraj probnu šetnju</a>
+          <a class="btn ghost" href="#demo">Pogledaj demo</a>
+        </div>
+        <p class="muted mt-2">Bez obaveze • 30 min probno • Snimka dostupna nakon šetnje</p>
+      </div>
+      <div class="center">
+        <div class="phone">
+          <div class="screen">
+            <div class="fake-stream"></div>
+            <div class="live-badge"><span class="dot"></span> LIVE</div>
+            <div class="hud">
+              <div class="chip">GPS • 2.1 km</div>
+              <div class="chip">Baterija 82%</div>
+            </div>
+          </div>
+        </div>
+        <p class="muted mt-2">Mock zaslon aplikacije s live streamom i HUD-om.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ostatak stranice -->
+  <section id="benefiti" class="section">
+    <div class="container">
+      <h3>Zašto GoPaws?</h3>
+      <p class="lead">Live video, GPS ruta, obavijesti u realnom vremenu i potpuna sigurnost vašeg ljubimca.</p>
+      <div class="grid grid-3 mt-3">
+        <div class="card feature">
+          <div class="icon">📹</div>
+          <div>
+            <h4>Live video & snimka</h4>
+            <p class="muted">Gledajte šetnju uživo u aplikaciji i preuzmite snimku poslije. Full HD, stabilizirano, s vremenskim oznakama.</p>
+          </div>
+        </div>
+        <div class="card feature">
+          <div class="icon">🛰️</div>
+          <div>
+            <h4>GPS & timeline</h4>
+            <p class="muted">Ruta na karti, tempo, pauze i točke interesa. Sve uredno zabilježeno za vaš uvid.</p>
+          </div>
+        </div>
+        <div class="card feature">
+          <div class="icon">🔔</div>
+          <div>
+            <h4>Push obavijesti</h4>
+            <p class="muted">Krenuli smo • Pauza za vodu • Igranje • Povratak — uvijek znate što se događa.</p>
+          </div>
+        </div>
+        <div class="card feature">
+          <div class="icon">🛡️</div>
+          <div>
+            <h4>Sigurnost na prvom mjestu</h4>
+            <p class="muted">SIG oprema, svjetla u sumrak, osiguranje odgovornosti i SOS protokol za izvanredne situacije.</p>
+          </div>
+        </div>
+        <div class="card feature">
+          <div class="icon">🤝</div>
+          <div>
+            <h4>Transparentnost & povjerenje</h4>
+            <p class="muted">Vi odlučujete sve: rutu, trajanje, pravila igre. Mi isporučujemo dokaze i mirnu glavu.</p>
+          </div>
+        </div>
+        <div class="card feature">
+          <div class="icon">⚡</div>
+          <div>
+            <h4>Lagano za korištenje</h4>
+            <p class="muted">Instalirajte aplikaciju, odaberite termin, primite link — gotovo. Nema komplikacija.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="kako" class="section">
+    <div class="container grid grid-2">
+      <div>
+        <h3>Kako sve funkcionira</h3>
+        <p class="lead">Od rezervacije do snimke — u tri koraka.</p>
+        <div class="mt-3 steps">
+          <div class="step">
+            <h4>Rezervirajte termin</h4>
+            <p class="muted">U aplikaciji odaberite vrijeme, unesite napomene (npr. omiljeni park) i potvrdite.</p>
+          </div>
+          <div class="step">
+            <h4>Primite live link</h4>
+            <p class="muted">Par minuta prije šetnje stiže push obavijest s linkom za live i GPS prikaz.</p>
+          </div>
+          <div class="step">
+            <h4>Uživajte u prijenosu</h4>
+            <p class="muted">Gledajte uživo, šaljite poruke šetaču i preuzmite snimku nakon završetka.</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <h4 class="mt-0">Live karta & status</h4>
+          <div class="map mt-2" aria-label="Live mapa">
+            <svg class="pin" width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 22s7-7.333 7-12a7 7 0 10-14 0c0 4.667 7 12 7 12z" fill="#ef4444"/>
+              <circle cx="12" cy="10" r="3" fill="#fff"/>
+            </svg>
+            <div style="position:absolute;bottom:10px;left:10px;background:#fff;border:1px solid var(--ring);border-radius:10px;padding:8px;box-shadow:var(--shadow);font-size:14px">Status: U tijeku • 18 min • 1.2 km</div>
+          </div>
+          <p class="muted mt-2">Integracija: ovdje spojite kartu iz mobilne aplikacije (npr. Mapbox/Leaflet) i status API.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="cijene" class="section">
+    <div class="container">
+      <h3>Cjenik</h3>
+      <p class="lead">Pošteno i jasno — plaćate samo ono što trebate.</p>
+      <div class="grid grid-3 mt-3">
+        <div class="card plan">
+          <div>
+            <h4>Mini šetnja</h4>
+            <div class="price">15 €</div>
+            <div class="muted">30 min • kvart</div>
+          </div>
+          <ul>
+            <li>Live video + snimka</li>
+            <li>GPS ruta & bilješke</li>
+            <li>Obavijesti početak/kraj</li>
+          </ul>
+          <a class="btn primary" href="#kontakt">Rezerviraj</a>
+        </div>
+        <div class="card plan" style="border:2px solid var(--brown)">
+          <div>
+            <h4>Standard</h4>
+            <div class="price">25 €</div>
+            <div class="muted">60 min • park/trasa</div>
+          </div>
+          <ul>
+            <li>Live video + snimka (Full HD)</li>
+            <li>GPS ruta, pauze, POI</li>
+            <li>Chat s šetačem</li>
+          </ul>
+          <a class="btn primary" href="#kontakt">Najpopularnije</a>
+        </div>
+        <div class="card plan">
+          <div>
+            <h4>Trail</h4>
+            <div class="price">39 €</div>
+            <div class="muted">90 min • avantura</div>
+          </div>
+          <ul>
+            <li>4K snimka + highlight</li>
+            <li>Napredno praćenje (telemetrija)</li>
+            <li>Sigurnosni paket & SOS</li>
+          </ul>
+          <a class="btn primary" href="#kontakt">Rezerviraj</a>
+        </div>
+      </div>
+      <p class="muted mt-2">* Cijene informativne; mogu varirati ovisno o lokaciji i posebnom zahtjevu.</p>
+    </div>
+  </section>
+
+  <section id="demo" class="section">
+    <div class="container grid grid-2">
+      <div>
+        <h3>Šape uživo - Demo live prijenosa</h3>
+        <p class="lead">Prikaz šetaća s GoPro i vlasnika koji ih prati uživo na poslu preko mobile App-a</p>
+        <div class="card video-frame">
+          <div class="video-outer">
+            <!-- Lokalni video: prilagodi putanju -->
+            <video src="/video/spojeno.mp4" autoplay muted loop playsinline controls></video>
+          </div>
+        </div>
+      </div>
+      <div>
+        <br><br><br><br><br><br>
+        <h4 class="mt-0">Prednosti live praćenja preko mobilne aplikacije</h4>
+        <ul class="mt-2">
+          <li><strong>Trenutni uvid</strong> — vidite ponašanje psa u kontekstu okoline.</li>
+          <li><strong>Sigurnosna kontrola</strong> — SOS gumb i dvosmjerna komunikacija.</li>
+          <li><strong>Dokaz kvalitete</strong> — snimke kao evidencija isporučene usluge.</li>
+          <li><strong>Obiteljski doživljaj</strong> — djeca mogu pratiti avanturu u živo.</li>
+          <li><strong>Privatnost</strong> — stream je zaštićen privatnim linkom i PIN-om.</li>
+        </ul>
+        <div class="row mt-3">
+          <a class="btn primary" href="#kontakt">Zatraži pristup aplikaciji</a>
+          <a class="btn ghost" href="#faq">Česta pitanja</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container grid grid-3">
+      <div class="card">
+        <div class="stars">★★★★★</div>
+        <p>„Savršeno! Gledali smo šetnju uživo s posla. Snimka je ostala kao uspomena.“</p>
+        <p class="muted">— Ana, vlasnica Lune</p>
+      </div>
+      <div class="card">
+        <div class="stars">★★★★★</div>
+        <p>„GPS i video daju mir. Točno znam gdje je bio i koliko je trčao.“</p>
+        <p class="muted">— Marko, vlasnik Maxa</p>
+      </div>
+      <div class="card">
+        <div class="stars">★★★★☆</div>
+        <p>„Odlična kvaliteta slike, a aplikacija je jednostavna. Preporuka!“</p>
+        <p class="muted">— Ivana, vlasnica Kike</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" class="section">
+    <div class="container">
+      <h3>Česta pitanja</h3>
+      <details class="mt-2">
+        <summary>Kako štitite privatnost?</summary>
+        <p>Stream je privatni, dostupan samo preko jedinstvenog linka i PIN-a. Snimke se čuvaju ograničeno vrijeme, prema vašim postavkama.</p>
+      </details>
+      <details>
+        <summary>Što ako nestane interneta?</summary>
+        <p>Kamera lokalno snima; čim se veza vrati, stream se nastavlja. GPS ruta se sinkronizira retroaktivno.</p>
+      </details>
+      <details>
+        <summary>Mogu li pričati sa šetačem?</summary>
+        <p>Da, aplikacija podržava chat i brze obavijesti (predlošci: voda, igra, pauza).</p>
+      </details>
+      <details>
+        <summary>Podržane kamere?</summary>
+        <p>GoPro 11/12, kao i druge akcijske kamere s RTMP/HLS izvozom.</p>
+      </details>
+    </div>
+  </section>
+
+  <section id="kontakt" class="section">
+    <div class="container grid grid-2">
+      <div>
+        <h3>Kontakt & rezervacija</h3>
+        <p class="lead">Ispunite obrazac — javit ćemo se u roku 24 h.</p>
+        <form class="card" onsubmit="sendMsg(event)">
+          <label for="name">Ime i prezime</label>
+          <input id="name" name="name" placeholder="Vaše ime" required style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--ring);margin:6px 0 12px;background:#fff" />
+
+          <label for="email">E-pošta</label>
+          <input id="email" type="email" name="email" placeholder="ime@domena.hr" required style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--ring);margin:6px 0 12px;background:#fff" />
+
+          <label for="msg">Poruka</label>
+          <textarea id="msg" name="message" placeholder="Željeni termin, lokacija, posebne napomene…" required style="width:100%;padding:12px;border-radius:12px;border:1px solid var(--ring);min-height:120px;margin:6px 0 12px;background:#fff"></textarea>
+
+          <div class="row">
+            <button class="btn primary" type="submit">Pošalji upit</button>
+            <a class="btn ghost" href="tel:+3859xxxxxxx">📞 Nazovi</a>
+          </div>
+          <p class="muted mt-2">Slanjem upita prihvaćate uvjete korištenja i politiku privatnosti.</p>
+        </form>
+      </div>
+      <div>
+        <h4 class="mt-0">Preuzmi aplikaciju</h4>
+        <div class="card">
+          <div class="row">
+            <a class="btn ghost" href="#">⬇️ Android (APK)</a>
+            <a class="btn ghost" href="#">⬇️ iOS (TestFlight)</a>
+          </div>
+          <p class="muted mt-2">Za privatni pristup unesite kod koji dobijete nakon rezervacije.</p>
+          <hr style="border:none;border-top:1px solid var(--ring);margin:16px 0" />
+          <h4 class="mt-0">Tehničke napomene</h4>
+          <ul>
+            <li>RTMP/HLS stream; moguć CDN ili P2P low-latency.</li>
+            <li>Mapbox/Leaflet za kartu; GPS sync prema vremenskom kodu videa.</li>
+            <li>Zaštita linka PIN-om, potpisani URL-ovi za snimke.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="grid grid-3">
+        <div>
+          <strong>GoPaws</strong><br/>
+          Šetanje pasa s GoPro kamerom i live praćenjem.
+        </div>
+        <div>
+          <strong>Kontakt</strong><br/>
+          hello@gopaws.hr<br/>
+          +385 9x xxx xxxx
+        </div>
+        <div class="right">
+          <a class="btn ghost" href="#kontakt">Rezerviraj termin</a>
+        </div>
+      </div>
+      <p class="center muted mt-3">© <span id="y"></span> GoPaws — Sva prava pridržana.</p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+    function sendMsg(e){
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const msg = document.getElementById('msg').value.trim();
+      if(!name || !email || !msg){ alert('Molimo ispunite sva polja.'); return; }
+      alert('Hvala, '+name+'! Javimo se uskoro na '+email+'.');
+      e.target.reset();
+    }
+  </script>
+</body>
+</html>
