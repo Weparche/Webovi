@@ -282,6 +282,28 @@ body{ padding-top: var(--header-h); }
 .banner-left { text-align: left; }
 .banner-right{ text-align: right; }
 
+.banner{ position: relative; }
+.banner::before{ z-index: 0; } /* overlay ispod svega */
+
+.banner-cta-fixed{
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: clamp(12px, 3vw, 24px); /* udaljenost od dna */
+  z-index: 2;                     /* iznad overlaya */
+  box-shadow: 0 10px 24px rgba(15,61,62,.25);
+}
+
+/* ugodnije na mobitelu */
+@media (max-width: 720px){
+  .banner-cta-fixed{
+    bottom: max(14px, env(safe-area-inset-bottom));
+    width: min(320px, 92vw);      /* veći tap target */
+    justify-content: center;
+    text-align: center;
+  }
+}
+
 @media (max-width: 900px){
   .banner-inner{ grid-template-columns: 1fr; text-align: center; }
   .banner-left, .banner-right{ text-align: center; }
@@ -362,11 +384,12 @@ body{ padding-top: var(--header-h); }
     </div>
   </header>
 
-  <section id="banner" class="banner" role="region" aria-label="Uvodni banner">
+ <section id="banner" class="banner" role="region" aria-label="Uvodni banner">
   <div class="container banner-inner">
     <h2 class="banner-title banner-left">Prirodna potpora za vaše tijelo</h2>
     <h2 class="banner-title banner-right">Po recepturi dr. Trkovnika</h2>
   </div>
+  <a class="btn btn-primary banner-cta-fixed" href="#pocetna" aria-label="Saznaj više">Saznaj više</a>
 </section>
 
 
@@ -594,14 +617,14 @@ body{ padding-top: var(--header-h); }
           </label>
           <div class="cta-row" style="margin-top:12px">
             <button class="btn btn-primary" type="submit">Pošalji poruku</button>
-            <a class="btn btn-ghost" href="mailto:farmakon@farmakon.hr">Pošalji e‑poštu</a>
+            <a class="btn btn-ghost" href="mailto:info@farmakon.hr">Pošalji e‑poštu</a>
           </div>
         </form>
         <div class="card">
           <strong>Kontakt podaci</strong>
           <p style="color:var(--muted)">
-            E‑pošta: <a href="mailto:info@farmakon.hr">info@farmakon.hr</a><br />
-            Telefon: <a href="tel:+38500000000">+385 98 312 578</a><br />
+            E‑pošta: <a href="mailto:info@farmakon.hr">farmakon@farmakon.hr</a><br />
+            Telefon: <a href="tel:+385312578">+385 98 312 578</a><br />
             Adresa: <em>upisati adresu</em>
           </p>
           <strong>Radno vrijeme</strong>
