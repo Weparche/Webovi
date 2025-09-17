@@ -410,6 +410,24 @@ html, body { scroll-behavior: smooth; }
 
 /* ciljne sekcije imaju margu koliko je visok header */
 [id]{ scroll-margin-top: calc(var(--header-h) + 10px); }
+
+
+/* Gdje kupiti – mapa */
+.map-embed{
+  position: relative;
+  aspect-ratio: 16/9;            /* responsivno bez JS-a */
+  border: 1px solid var(--ring);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(2,6,23,.08);
+  background: #fff;
+}
+.map-embed iframe{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  border:0;
+}
+
   </style>
 </head>
 <body>
@@ -427,8 +445,8 @@ html, body { scroll-behavior: smooth; }
         <a href="#pocetna">Početna</a>
         <a href="#proizvodi">Proizvodi</a>
         <a href="#kako-djeluje">Kako djeluje</a>
-        <a href="#o-nama">O nama</a>
-        <a href="#faq">Česta pitanja</a>
+        <a href="#gdje-kupiti">Gdje kupiti?</a>
+        <a href="#o-nama">O nama</a>        
         <a class="btn btn-primary" href="#kontakt">Kontakt</a>
       </nav>
     </div>
@@ -599,6 +617,38 @@ html, body { scroll-behavior: smooth; }
       </div>
     </div>
   </section>
+
+  <section id="gdje-kupiti" aria-labelledby="kupitiTitle">
+  <div class="container">
+    <h2 id="kupitiTitle">Gdje kupiti?</h2>
+    <p class="lead">
+      Prodajno mjesto: <strong>Nikel – Priroda liječi d.o.o.</strong><br>
+      Vlaška ul. 40, 10000 Zagreb
+      <strong><br>01 4814 152</strong>
+    </p>
+
+    <div class="map-embed" role="region" aria-label="Karta: Nikel – Priroda liječi d.o.o., Vlaška 40, Zagreb">
+      <iframe
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        allowfullscreen
+        src="https://www.google.com/maps?q=Nikel%20-%20Priroda%20lije%C4%8Di%20d.o.o.%20Vla%C5%A1ka%20ul.%2040%2C%2010000%20Zagreb&output=embed">
+      </iframe>
+    </div>
+
+    <div class="cta-row" style="margin-top:12px">
+      <a class="btn btn-primary" target="_blank" rel="noopener"
+         href="https://www.google.com/maps?q=Nikel%20-%20Priroda%20lije%C4%8Di%20d.o.o.%20Vla%C5%A1ka%20ul.%2040%2C%2010000%20Zagreb">
+        Otvori u Google kartama
+      </a>
+      <a class="btn btn-ghost" target="_blank" rel="noopener"
+         href="https://maps.apple.com/?q=Vla%C5%A1ka%2040%2C%20Zagreb">
+        Otvori u Apple Kartama
+      </a>
+    </div>
+  </div>
+</section>
+
 
   <!-- O nama -->
   <section id="o-nama" aria-labelledby="onamaTitle">
