@@ -294,10 +294,10 @@ export default function App() {
       <Header dark={dark} setDark={setDark} />
 
       {/* GLOBALNA POZADINA — 50% prozirna, preko cijele stranice */}
-<div
+{/* <div
   aria-hidden="true"
   className="pointer-events-none fixed inset-0 -z-10 bg-[url('/background.jpg')] bg-cover bg-center opacity-10"
-/>
+/> */}
 
 
 
