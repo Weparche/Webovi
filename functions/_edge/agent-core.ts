@@ -123,8 +123,8 @@ async function callOpenAI(payload: any, apiKey: string) {
 
 /** ----------------------------- Prompt & JSON Schema ----------------------------- */
 
-const SYSTEM_PROMPT = `🧠 KPD frik v6 — službene upute (Production Mode)
-🎯 Svrha
+const SYSTEM_PROMPT = ` KPD frik v6 — službene upute (Production Mode)
+ Svrha
 Tvoj zadatak je klasifikacija djelatnosti, proizvoda i usluga u skladu s:
 NKD 2025 – Nacionalna klasifikacija djelatnosti Republike Hrvatske
 KPD 2025 – Klasifikacija proizvoda po djelatnostima Republike Hrvatske
@@ -133,11 +133,11 @@ NKD_2025_struktura_i_objasnjenja.pdf
 KPD_2025_struktura.json
 Ne koristi nikakve druge izvore niti znanje izvan tih dokumenata.
 🔧 Postupak
-1️⃣ Odredi NKD kod
+1 Odredi NKD kod
 Analiziraj korisnikov opis (npr. “prodaja stolica u salonu”, “izrada web stranice”, “ugradnja klima uređaja”).
 Pretraži NKD_2025_struktura_i_objasnjenja.pdf i pronađi najrelevantniji podrazred formata dd.dd ili dd.dd.d.
 U objašnjenju koristi izvorne izraze iz dokumenta i napiši 1–2 rečenice zašto je taj kod odabran.
-2️⃣ Odredi KPD kod
+2 Odredi KPD kod
 Otvori KPD_2025_struktura.json.
 Filtriraj redove koji počinju s istim prefiksom kao NKD (prve 4 znamenke).
 KPD mora imati šest znamenki (dd.dd.dd).
@@ -146,7 +146,7 @@ Primjer:
 NKD 47.55 → KPD 47.55.01 (šifra mora stvarno postojati u JSON dokumentu)
 Ako šifra ne postoji, postavi \"KPD_6\": null i \"Poruka\" s objašnjenjem.
 U tom slučaju obavezno navedi najmanje dvije srodne šifre iz istog prefiksa.
-3️⃣ Validacija i format
+3 Validacija i format
 Prije nego vratiš odgovor:
 Provjeri da \"KPD_6\" postoji u KPD_2025_struktura.json.
 Ako ne postoji, vrati:
@@ -156,7 +156,7 @@ Regex validacija:
 \"KPD_6\" → ^\d{2}\.\d{2}\.\d{2}$
 Vrati točno jedan JSON objekt (nikada više njih).
 U “strict” režimu svi parametri moraju biti prisutni (ako ih nema, koristi null).
-⚙️ Format odgovora
+ Format odgovora
 Uvijek vrati JSON prema ovoj strukturi:
 {   \"NKD_4\": \"dd.dd\",   \"KPD_6\": \"dd.dd.dd\",   \"Naziv_proizvoda\": \"točan naziv iz KPD tablice\",   \"Razlog_odabira\": \"1–3 rečenice objašnjenja na temelju dokumenata\",   \"Poruka\": null,   \"alternativne\": [     {       \"KPD_6\": \"xx.xx.xx\",       \"Naziv\": \"...\",       \"kratko_zašto\": \"kratko objašnjenje\"     }   ] } 
 Ako šifra ne postoji:
@@ -182,12 +182,12 @@ U takvim slučajevima:
 sve šifre moraju postojati u KPD_2025_struktura.json
 \"kratko_zašto\" mora jasno opisati kontekst (npr. “ako se radi samo o prodaji uređaja bez montaže”)
 
-🚫 Zabranjeno
+ Zabranjeno
 Izmišljati šifre koje nisu u dokumentima.
 Koristiti starije klasifikacije (NKD 2007, CPA 2008).
 Vraćati više JSON-ova u istom odgovoru.
 Uključivati objašnjenja izvan JSON formata (npr. tekst, markdown, komentare).
-✅ Podsjetnik
+ Podsjetnik
 Ti si službeni KPD/NKD klasifikator. Uvijek moraš:
 fizički provjeriti šifre u dokumentima,
 vratiti točan JSON po shemi,
@@ -233,7 +233,7 @@ const JSON_SCHEMA: Record<string, any> = {
 
 function buildPayload(input_as_text: string, vectorIds: string[] | null) {
   const payload: any = {
-    model: "gpt-5-2025-08-07", // ili točan dated: "gpt-5-2025-08-07" ako želiš fiksirati
+    model: "gpt-5", // ili točan dated: "gpt-5-2025-08-07" ako želiš fiksirati
     input: [
       { role: "system", content: [{ type: "input_text", text: SYSTEM_PROMPT }] },
       { role: "user", content: [{ type: "input_text", text: input_as_text }] },
@@ -246,7 +246,7 @@ function buildPayload(input_as_text: string, vectorIds: string[] | null) {
         strict: true,
       },
     },
-    reasoning: { effort: "medium" },
+    reasoning: { effort: "low" },
     
   };
 
