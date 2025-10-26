@@ -1,11 +1,9 @@
-// functions/api/kpdinfo/classify.ts
-import { runWorkflow } from "../../../server/src/agent";
+import { classifyCore } from "../../_edge/agent-core";
 
 export const onRequestPost = async (ctx: any): Promise<Response> => {
   try {
     const body = await ctx.request.json().catch(() => ({}));
     const input = String(body?.input_as_text ?? "").trim();
-
     if (!input) {
       return new Response(JSON.stringify({ error: "Prazan upit." }), {
         status: 400,
@@ -13,8 +11,7 @@ export const onRequestPost = async (ctx: any): Promise<Response> => {
       });
     }
 
-    // 🔴 NEMA više placeholdera: zovi agenta
-    const result = await runWorkflow({ input_as_text: input, env: ctx.env });
+    const result = await classifyCore(input, ctx.env);
 
     return new Response(JSON.stringify(result), {
       status: 200,
@@ -27,4 +24,3 @@ export const onRequestPost = async (ctx: any): Promise<Response> => {
     });
   }
 };
-
