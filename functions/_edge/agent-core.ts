@@ -159,22 +159,16 @@ const JSON_SCHEMA = {
 // —————————— payload ——————————
 
 function buildPayload(input_as_text: string, vectorIds: string[] | null) {
-  const useTools = !!(vectorIds && vectorIds.length);
   return {
     model: "gpt-5",
-    modalities: ["text"],
-    max_output_tokens: 1024,
-    reasoning: { effort: "low" },
-    temperature: 0.2,
-
     input: [
       { role: "system", content: [{ type: "input_text", text: SYSTEM_PROMPT }] },
       { role: "user",   content: [{ type: "input_text", text: input_as_text }] },
     ],
-
-    ...(useTools ? { tools: [{ type: "file_search" }] } : {}),
-    ...(useTools ? { tool_resources: { file_search: { vector_store_ids: vectorIds! } } } : {}),
-
+    // Alati samo ako imaš vector store ID-jeve
+    tools: vectorIds && vectorIds.length ? [{ type: "file_search" }] : undefined,
+    tool_resources:
+      vectorIds && vectorIds.length ? { file_search: { vector_store_ids: vectorIds } } : undefined,
     text: {
       format: {
         type: "json_schema",
@@ -185,6 +179,7 @@ function buildPayload(input_as_text: string, vectorIds: string[] | null) {
     },
   };
 }
+
 
 // —————————— glavni poziv ——————————
 
