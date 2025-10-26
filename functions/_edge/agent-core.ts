@@ -101,9 +101,10 @@ function buildPayload(input_as_text: string, vectorIds: string[] | null) {
   return {
     model: "gpt-5",
     input: [
-      { role: "system", content: [{ type: "output_text", text: SYSTEM_PROMPT }] },
-      { role: "user", content: [{ type: "input_text", text: input_as_text }] },
-    ],
+  { role: "system", content: [{ type: "input_text", text: SYSTEM_PROMPT   }] },
+  { role: "user",   content: [{ type: "input_text", text: input_as_text   }] },
+],
+
     tools: vectorIds && vectorIds.length ? [{ type: "file_search" }] : undefined,
     tool_resources:
       vectorIds && vectorIds.length ? { file_search: { vector_store_ids: vectorIds } } : undefined,
