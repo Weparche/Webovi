@@ -19,7 +19,7 @@ export default function Header({ dark, setDark }: HeaderProps) {
         <div className="flex items-center gap-2 min-w-0">
           <a href="/" title="Početna" className="shrink-0">
             <img
-              src="../src/assets/logo.png"
+              src="/src/assets/logo.png"
               alt="KPD info logo"
               className="h-13 w-13 md:h-13 md:w-13 rounded-lg object-contain bg-white/70 dark:bg-slate-800/60 p-0.5 shadow-sm"
             />
