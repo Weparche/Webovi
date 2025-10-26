@@ -63,9 +63,9 @@ const JSON_SCHEMA = {
         properties: {
           KPD_6: { type: ["string", "null"] },
           Naziv: { type: "string" },
-          ["kratko_zašto"]: { type: ["string", "null"] },
+          ["kratko_zašto"]: { type: ["string", "null"] }, // može biti null, ali MORA postojati
         },
-        required: ["KPD_6", "Naziv"],
+        required: ["KPD_6", "Naziv", "kratko_zašto"], // ← dodano
       },
     },
   },
@@ -79,6 +79,7 @@ const JSON_SCHEMA = {
     "alternativne",
   ],
 };
+
 
 async function callOpenAI(payload: any, apiKey: string) {
   const res = await fetch("https://api.openai.com/v1/responses", {
