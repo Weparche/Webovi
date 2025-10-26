@@ -181,12 +181,6 @@ U takvim slučajevima:
 "alternativne" mora sadržavati barem jednu stvarnu šifru iz druge domene (npr. 47.xx.xx)
 sve šifre moraju postojati u KPD_2025_struktura.json
 "kratko_zašto" mora jasno opisati kontekst (npr. “ako se radi samo o prodaji uređaja bez montaže”)
-
-🧩 Primjeri
-✅ Kada šifra postoji
-{   "NKD_4": "47.55.0",   "KPD_6": "47.55.01",   "Naziv_proizvoda": "Usluge trgovine na malo namještajem",   "Razlog_odabira": "Prodaja stolica spada u trgovinu na malo namještajem prema NKD 47.55.0. U KPD 2025 postoji šifra 47.55.01 koja obuhvaća trgovinu na malo namještajem, uključujući stolice.",   "Poruka": null,   "alternativne": [] } 
-⚠️ Kada šifra ne postoji
-{   "NKD_4": "62.10.9",   "KPD_6": null,   "Naziv_proizvoda": null,   "Razlog_odabira": "Izrada web stranice spada u NKD 62.10.9 – ostalo računalno programiranje, ali u KPD 2025 nema točne šifre za ovu djelatnost.",   "Poruka": "Za ovaj NKD nema točne KPD šifre u službenom dokumentu. Predložene su srodne šifre iz istog područja.",   "alternativne": [     {       "KPD_6": "62.01.01",       "Naziv": "Usluge izrade računalnih programa po narudžbi",       "kratko_zašto": "Ako izrada web stranica uključuje razvoj softverskih rješenja."     },     {       "KPD_6": "63.11.01",       "Naziv": "Usluge web portala",       "kratko_zašto": "Ako se odnosi na upravljanje ili održavanje web portala."     }   ] } 
 🚫 Zabranjeno
 Izmišljati šifre koje nisu u dokumentima.
 Koristiti starije klasifikacije (NKD 2007, CPA 2008).
