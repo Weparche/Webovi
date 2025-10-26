@@ -67,7 +67,7 @@ function parseStructured(data: any) {
 }
 
 async function callOpenAI(payload: any, apiKey: string) {
-  const CTRL_TIMEOUT_MS = 40_000; // 40s
+  const CTRL_TIMEOUT_MS = 80_000; // 80s
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), CTRL_TIMEOUT_MS);
 
