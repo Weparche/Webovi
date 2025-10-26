@@ -66,27 +66,35 @@ function parseStructured(data: any) {
   throw new Error(`OpenAI ne vraća parsabilan JSON (parser). Sample: ${sample}`);
 }
 
-async function callOpenAI(payload: any, apiKey: string, timeoutMs = 80_000) {
+async function callOpenAI(payload: any, apiKey: string) {
   const ctrl = new AbortController();
-  const to = setTimeout(() => ctrl.abort(), timeoutMs);
+  const t = setTimeout(() => ctrl.abort(), 40_000);
+
   try {
     const res = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(payload),
       signal: ctrl.signal,
     });
+
     const text = await res.text();
-    if (!res.ok) throw new Error(`OpenAI HTTP ${res.status}: ${text || res.statusText}`);
+    if (!res.ok) {
+      throw new Error(`OpenAI HTTP ${res.status}: ${text || res.statusText}`);
+    }
     try {
       return JSON.parse(text);
     } catch {
       throw new Error(`OpenAI JSON parse fail: ${text.slice(0, 300)}`);
     }
   } finally {
-    clearTimeout(to);
+    clearTimeout(t);
   }
 }
+
 
 
 // —————————— prompt + schema ——————————
@@ -263,13 +271,14 @@ function extractParsed(data: any): any | null {
 function buildPayload(input_as_text: string, vectorIds: string[] | null) {
   return {
     model: "gpt-5",
-    messages: [
-      { role: "system", content: [{ type: "text", text: SYSTEM_PROMPT }] },
-      { role: "user",   content: [{ type: "text", text: input_as_text   }] },
+    instructions: SYSTEM_PROMPT, // system prompt
+    input: [
+      { role: "user", content: [{ type: "input_text", text: input_as_text }] },
     ],
-    tools: vectorIds && vectorIds.length ? [{ type: "file_search" }] : undefined,
-    tool_resources:
-      vectorIds && vectorIds.length ? { file_search: { vector_store_ids: vectorIds } } : undefined,
+    tools: vectorIds?.length ? [{ type: "file_search" }] : undefined,
+    tool_resources: vectorIds?.length
+      ? { file_search: { vector_store_ids: vectorIds } }
+      : undefined,
     text: {
       format: {
         type: "json_schema",
@@ -278,8 +287,10 @@ function buildPayload(input_as_text: string, vectorIds: string[] | null) {
         strict: true,
       },
     },
+    reasoning: { effort: "low" }, // dopušteno, ali nije obavezno
   };
 }
+
 
 
 
