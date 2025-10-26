@@ -236,9 +236,6 @@ U takvim slučajevima:
 "alternativne" mora sadržavati barem jednu stvarnu šifru iz druge domene (npr. 47.xx.xx)
 sve šifre moraju postojati u KPD_2025_struktura.json
 "kratko_zašto" mora jasno opisati kontekst (npr. “ako se radi samo o prodaji uređaja bez montaže”)
-
- Primjeri
- Kada šifra postoji{   "NKD_4": "47.55.0",   "KPD_6": "47.55.01",   "Naziv_proizvoda": "Usluge trgovine na malo namještajem",   "Razlog_odabira": "Prodaja stolica spada u trgovinu na malo namještajem prema NKD 47.55.0. U KPD 2025 postoji šifra 47.55.01 koja obuhvaća trgovinu na malo namještajem, uključujući stolice.",   "Poruka": null,   "alternativne": [] } 
   
  Zabranjeno
 Izmišljati šifre koje nisu u dokumentima.
