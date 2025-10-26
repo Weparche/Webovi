@@ -107,10 +107,10 @@ function buildPayload(input_as_text: string, vectorIds: string[] | null) {
     tools: vectorIds && vectorIds.length ? [{ type: "file_search" }] : undefined,
     tool_resources:
       vectorIds && vectorIds.length ? { file_search: { vector_store_ids: vectorIds } } : undefined,
-    response_format: {
-      type: "json_schema",
-      json_schema: { name: "KpdResponse", schema: JSON_SCHEMA, strict: true },
-    },
+    text: {
+  format: "json_schema",
+  json_schema: { name: "KpdResponse", schema: JSON_SCHEMA, strict: true },
+},
   };
 }
 
