@@ -33,90 +33,126 @@ function coerceKpdResponse(obj: any): KpdResponse {
   };
 }
 
-export async function classifyCore(input_as_text: string, env?: AgentEnv): Promise<KpdResponse> {
-  const apiKey = env?.OPENAI_API_KEY;
-  if (!apiKey) throw new Error("OPENAI_API_KEY nije postavljen u okruženju.");
-
-  const vectorIds = [
-    env?.VS_NKD_ID,
-    env?.VS_KPD_ID,
-    "vs_68f0cfbb2d9081918800e3eb92d9d483",
-  ].filter(Boolean);
-
-  const system = `
+const SYSTEM_PROMPT = `
 Ti si službeni KPD/NKD 2025 klasifikator. Koristi isključivo dokumente iz file_search:
 - NKD_2025_struktura_i_objasnjenja.pdf
 - KPD_2025_struktura.json
 
 1) Odredi NKD_4 (dd.dd ili dd.dd.d) + NKD_naziv iz NKD PDF-a.
-2) Odredi KPD_6 (dd.dd.dd) iz KPD JSON-a s istim prefiksom. Ako ne postoji točan KPD: KPD_6=null, Naziv_proizvoda=null, Poruka s objašnjenjem.
+2) Odredi KPD_6 (dd.dd.dd) iz KPD JSON-a istog prefiksa. Ako ne postoji točan KPD: KPD_6=null, Naziv_proizvoda=null, Poruka s objašnjenjem.
 3) Dodaj 1–3 stvarne alternativne KPD šifre istog prefiksa, s "kratko_zašto".
 4) Regex: NKD_4 ^\\d{2}\\.\\d{2}(\\.\\d)?$, KPD_6 ^\\d{2}\\.\\d{2}\\.\\d{2}$ (ako postoji).
 Vrati točno JEDAN JSON: NKD_4, NKD_naziv, KPD_6, Naziv_proizvoda, Razlog_odabira, Poruka, alternativne[].
 `;
 
-  const schema = {
-    type: "object",
-    additionalProperties: false,
-    properties: {
-      NKD_4: { type: "string" },
-      NKD_naziv: { type: ["string", "null"] },
-      KPD_6: { type: ["string", "null"] },
-      Naziv_proizvoda: { type: ["string", "null"] },
-      Razlog_odabira: { type: ["string", "null"] },
-      Poruka: { type: ["string", "null"] },
-      alternativne: {
-        type: "array",
-        items: {
-          type: "object",
-          additionalProperties: false,
-          properties: {
-            KPD_6: { type: ["string", "null"] },
-            Naziv: { type: "string" },
-            ["kratko_zašto"]: { type: ["string", "null"] },
-          },
-          required: ["KPD_6", "Naziv"],
+const JSON_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    NKD_4: { type: "string" },
+    NKD_naziv: { type: ["string", "null"] },
+    KPD_6: { type: ["string", "null"] },
+    Naziv_proizvoda: { type: ["string", "null"] },
+    Razlog_odabira: { type: ["string", "null"] },
+    Poruka: { type: ["string", "null"] },
+    alternativne: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          KPD_6: { type: ["string", "null"] },
+          Naziv: { type: "string" },
+          ["kratko_zašto"]: { type: ["string", "null"] },
         },
+        required: ["KPD_6", "Naziv"],
       },
     },
-    required: ["NKD_4", "NKD_naziv", "KPD_6", "Naziv_proizvoda", "Razlog_odabira", "Poruka", "alternativne"],
-  };
+  },
+  required: [
+    "NKD_4",
+    "NKD_naziv",
+    "KPD_6",
+    "Naziv_proizvoda",
+    "Razlog_odabira",
+    "Poruka",
+    "alternativne",
+  ],
+};
 
-  const payload = {
-    model: "gpt-5",
-    input: [
-      { role: "system", content: [{ type: "output_text", text: system }] },
-      { role: "user", content: [{ type: "input_text", text: input_as_text }] },
-    ],
-    tools: [{ type: "file_search" }],
-    tool_resources: vectorIds.length ? { file_search: { vector_store_ids: vectorIds as string[] } } : undefined,
-    response_format: { type: "json_schema", json_schema: { name: "KpdResponse", schema, strict: true } },
-  };
-
+async function callOpenAI(payload: any, apiKey: string) {
   const res = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-
+  const text = await res.text();
   if (!res.ok) {
-    const txt = await res.text().catch(() => "");
-    throw new Error(`OpenAI HTTP ${res.status}: ${txt || res.statusText}`);
+    throw new Error(`OpenAI HTTP ${res.status}: ${text || res.statusText}`);
   }
-
-  const data: any = await res.json();
-
-  if (data?.output_parsed) {
-    return coerceKpdResponse(data.output_parsed);
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`OpenAI JSON parse fail: ${text.slice(0, 300)}`);
   }
+}
 
-  const text =
-    data?.output?.[0]?.content?.find((c: any) => c?.type === "output_text")?.text ??
-    data?.output_text ?? "";
+function buildPayload(input_as_text: string, vectorIds: string[] | null) {
+  return {
+    model: "gpt-5",
+    input: [
+      { role: "system", content: [{ type: "output_text", text: SYSTEM_PROMPT }] },
+      { role: "user", content: [{ type: "input_text", text: input_as_text }] },
+    ],
+    tools: vectorIds && vectorIds.length ? [{ type: "file_search" }] : undefined,
+    tool_resources:
+      vectorIds && vectorIds.length ? { file_search: { vector_store_ids: vectorIds } } : undefined,
+    response_format: {
+      type: "json_schema",
+      json_schema: { name: "KpdResponse", schema: JSON_SCHEMA, strict: true },
+    },
+  };
+}
 
-  if (typeof text === "string" && text.trim().startsWith("{")) {
-    try { return coerceKpdResponse(JSON.parse(text)); } catch {}
+export async function classifyCore(input_as_text: string, env?: AgentEnv): Promise<KpdResponse> {
+  const apiKey = env?.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("OPENAI_API_KEY nije postavljen u Pages > Settings > Environment Variables (Production).");
+
+  const vectorIds = [env?.VS_NKD_ID, env?.VS_KPD_ID].filter(Boolean) as string[]; // bez fallbacka – držimo se tvojih ID-eva
+  try {
+    // 1) Pokušaj s file_search
+    const data = await callOpenAI(buildPayload(input_as_text, vectorIds), apiKey);
+    const out =
+      data?.output_parsed ??
+      (() => {
+        const t =
+          data?.output?.[0]?.content?.find((c: any) => c?.type === "output_text")?.text ??
+          data?.output_text ??
+          "";
+        return t && t.trim().startsWith("{") ? JSON.parse(t) : null;
+      })();
+
+    if (!out) throw new Error("OpenAI ne vraća parsabilan JSON (s file_search).");
+    return coerceKpdResponse(out);
+  } catch (err: any) {
+    // 2) Ako je problem oko vektorskih storeova, pokušaj BEZ alata da izoliraš auth/model
+    const msg = String(err?.message || err);
+    const looksLikeVS =
+      msg.includes("vector_store") || msg.includes("file_search") || msg.includes("tool_resources");
+    if (!looksLikeVS) throw err; // nije VS problem – digni grešku
+
+    const data = await callOpenAI(buildPayload(input_as_text, null), apiKey);
+    const out =
+      data?.output_parsed ??
+      (() => {
+        const t =
+          data?.output?.[0]?.content?.find((c: any) => c?.type === "output_text")?.text ??
+          data?.output_text ??
+          "";
+        return t && t.trim().startsWith("{") ? JSON.parse(t) : null;
+      })();
+
+    if (!out) throw new Error("OpenAI ne vraća parsabilan JSON (bez file_search).");
+    return coerceKpdResponse(out);
   }
-
-  throw new Error("OpenAI ne vraća parsabilan JSON odgovor.");
 }
