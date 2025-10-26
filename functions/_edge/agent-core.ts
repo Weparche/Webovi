@@ -111,12 +111,10 @@ function buildPayload(input_as_text: string, vectorIds: string[] | null) {
     text: {
   format: {
     type: "json_schema",
-    name: "KpdResponse", // ← OVO je traženo
-    json_schema: {
+    name: "KpdResponse", // ← OVO je traženo    
       schema: JSON_SCHEMA, // tvoja schema
-      strict: true
-    }
-  }
+      strict: true,
+      },
 },
   };
 }
