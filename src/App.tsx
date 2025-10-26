@@ -43,10 +43,6 @@ import { AltItem, KpdResponse, pretty, validateResponse } from "@/types";
 //   };
 // }
 
-useEffect(() => {
-  console.log("BUILD MARKER: api-only");
-}, []);
-
 /** ---- Tip za stavku povijesti (snapshot) ---- */
 type HistItem = {
   q: string;
