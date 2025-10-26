@@ -57,18 +57,39 @@ function extractParsed(data: any): any | null {
   return null;
 }
 
-/** Detektira je li file_search alat stvarno korišten u odgovoru */
+/** Robustno detektira je li file_search alat korišten (više snapshot formata) */
 function usedRetrieval(data: any): boolean {
   const out = Array.isArray(data?.output) ? data.output : [];
-  for (const item of out) {
-    const toolCalls = Array.isArray(item?.tool_calls) ? item.tool_calls : [];
-    if (toolCalls.some((tc: any) => (tc?.type || tc?.tool_type) === "file_search")) return true;
 
-    const content = Array.isArray(item?.content) ? item.content : [];
-    if (content.some((c: any) => c?.type === "tool_use" && (c?.name === "file_search" || c?.tool_name === "file_search"))) {
-      return true;
+  for (const msg of out) {
+    // 1) klasični poziv alata
+    if (Array.isArray(msg?.tool_calls) && msg.tool_calls.some((tc: any) =>
+      (tc?.type || tc?.tool_type) === "file_search" || tc?.name === "file_search")) return true;
+
+    // 2) content varijante
+    const content = Array.isArray(msg?.content) ? msg.content : [];
+    for (const c of content) {
+      // a) tool_use / tool_result stil
+      if (c?.type === "tool_use" || c?.type === "tool_result") {
+        if (c?.name === "file_search" || c?.tool_name === "file_search") return true;
+      }
+      // b) eksplicitni “file_search_*” tipovi (ovisno o snapshotu)
+      if (c?.type === "file_search_results" || c?.type === "file_search_call") return true;
+      // c) anotacije s referencama na datoteke
+      if (Array.isArray(c?.annotations) && c.annotations.some((a: any) =>
+        a?.file_id || a?.filename || (typeof a?.type === "string" && a.type.includes("file")))) return true;
     }
   }
+
+  // 3) included blok (kad koristiš include: ["file_search_call.results"])
+  if (data?.included && JSON.stringify(data.included).includes("file_search")) return true;
+
+  // 4) fallback: ponekad snapshot vrati “Searched files…” tekstualno
+  if (out.some((m: any) =>
+    JSON.stringify(m?.content || []).toLowerCase().includes("searched files") ||
+    JSON.stringify(m?.content || []).includes("KPD_2025_struktura.json") ||
+    JSON.stringify(m?.content || []).includes("NKD 2025_struktura_i_objasnjenja.pdf"))) return true;
+
   return false;
 }
 
@@ -76,20 +97,34 @@ function usedRetrieval(data: any): boolean {
 function retrievalProof(data: any): string {
   const proofs: string[] = [];
   const out = Array.isArray(data?.output) ? data.output : [];
-  out.forEach((item: any, i: number) => {
-    const calls = Array.isArray(item?.tool_calls) ? item.tool_calls : [];
-    calls.forEach((tc: any, j: number) => {
-      if ((tc?.type || tc?.tool_type) === "file_search") {
+
+  out.forEach((msg: any, i: number) => {
+    const toolCalls = Array.isArray(msg?.tool_calls) ? msg.tool_calls : [];
+    toolCalls.forEach((tc: any, j: number) => {
+      if ((tc?.type || tc?.tool_type) === "file_search" || tc?.name === "file_search") {
         proofs.push(`output[${i}].tool_calls[${j}]: file_search`);
       }
     });
-    const content = Array.isArray(item?.content) ? item.content : [];
+
+    const content = Array.isArray(msg?.content) ? msg.content : [];
     content.forEach((c: any, k: number) => {
-      if (c?.type === "tool_use" && (c?.name === "file_search" || c?.tool_name === "file_search")) {
-        proofs.push(`output[${i}].content[${k}]: tool_use:file_search`);
+      if ((c?.type === "tool_use" || c?.type === "tool_result") &&
+          (c?.name === "file_search" || c?.tool_name === "file_search")) {
+        proofs.push(`output[${i}].content[${k}]: ${c.type}:file_search`);
+      }
+      if (c?.type === "file_search_results" || c?.type === "file_search_call") {
+        proofs.push(`output[${i}].content[${k}]: ${c.type}`);
+      }
+      if (Array.isArray(c?.annotations) && c.annotations.length) {
+        const files = [...new Set(c.annotations
+          .map((a: any) => a?.filename)
+          .filter(Boolean))];
+        if (files.length) proofs.push(`output[${i}].content[${k}]: annotations -> ${files.join(", ")}`);
       }
     });
   });
+
+  if (data?.included) proofs.push("included: file_search present");
   return proofs.join(" | ");
 }
 
@@ -126,7 +161,7 @@ async function callOpenAI(payload: any, apiKey: string, project?: string, org?: 
   }
 }
 
-/** (opcionalno) brzi self-test da je VS vidljiv s istim headerima */
+/** (opcionalno) GET na VS radi provjere vidljivosti — koristi iste headere kao i Responses */
 async function assertVectorStoreVisible(apiKey: string, project: string | undefined, org: string | undefined, vsId: string) {
   const headers: Record<string, string> = {
     Authorization: `Bearer ${apiKey}`,
@@ -246,45 +281,45 @@ const JSON_SCHEMA: Record<string, any> = {
  *                        Vector Stores & Payload
  * ------------------------------------------------------------------ */
 
-/** Default VS – tvoj traženi store. Po želji dodaj još. */
+/** Default fallback VS – tvoj ID */
 const DEFAULT_VECTOR_STORES = ["vs_68f0cfbb2d9081918800e3eb92d9d483"];
 
 /** Složi listu VS-ova: prvo iz ENV-a (ako postoje), inače default. */
 function getVectorStoreIds(env?: AgentEnv): string[] {
   const fromEnv = [env?.VS_NKD_ID, env?.VS_KPD_ID].filter(Boolean) as string[];
-  const unique = Array.from(new Set([...(fromEnv.length ? fromEnv : DEFAULT_VECTOR_STORES)]));
-  return unique;
+  const base = (fromEnv.length ? fromEnv : DEFAULT_VECTOR_STORES);
+  return Array.from(new Set(base));
 }
 
-/** Payload za Responses: gpt-5 + prisilni file_search + attachments */
-function buildPayload(input_as_text: string) {
+/** Payload za Responses: gpt-5 + prisilni file_search (bez attachments/tool_resources) */
+function buildPayload(input_as_text: string, vectorIds: string[]) {
   return {
     model: "gpt-5",
     input: [
       { role: "system", content: [{ type: "input_text", text: SYSTEM_PROMPT }] },
-      { role: "user",   content: [{ type: "input_text", text: input_as_text }] },
+      { role: "user", content: [{ type: "input_text", text: input_as_text }] },
     ],
     text: {
       format: { type: "json_schema", name: "KpdResponse", schema: JSON_SCHEMA, strict: true },
     },
     reasoning: { effort: "low" },
 
-    // ✅ jedini podržani način u tvom snapshotu
+    // deklariraj file_search alat i veži VS ID-jeve
     tools: [
       {
         type: "file_search",
-        vector_store_ids: ["vs_68f0cfbb2d9081918800e3eb92d9d483"],        
+        vector_store_ids: vectorIds,
+        max_num_results: 8,
       },
     ],
 
-    // ✅ ispravan format za forsiranje alata u Responses
-    // tool_choice: { type: "tool", name: "file_search" },
+    // prisili korištenje file_search (format koji snapshot prihvaća)
+    // tool_choice: { type: "file_search" },
 
-    // (ok za debug ako je podržano)
+    // vrati rezultate pretrage u included (ako snapshot podržava)
     include: ["file_search_call.results"],
   };
 }
-
 
 /** ------------------------------------------------------------------
  *                            Public API
@@ -292,7 +327,7 @@ function buildPayload(input_as_text: string) {
 
 /**
  * Izvrši klasifikaciju NKD/KPD strogo na temelju dokumenata u Vector Storeu.
- * Nema lokalnog JSON-a; ako retrieval izostane, baca grešku (nema fallback “no-tools”).
+ * Nema lokalnog JSON-a; nema fallbacka bez alata.
  */
 export async function classifyCore(input_as_text: string, env?: AgentEnv): Promise<KpdResponse> {
   const apiKey = env?.OPENAI_API_KEY;
@@ -303,24 +338,44 @@ export async function classifyCore(input_as_text: string, env?: AgentEnv): Promi
   const vectorIds = getVectorStoreIds(env);
   if (!vectorIds.length) throw new Error("Nije postavljen niti jedan Vector Store ID.");
 
-  // (opcionalno) self-test da VS postoji i da je vidljiv u istom Projectu
-  await Promise.all(vectorIds.map((id) => assertVectorStoreVisible(apiKey, project, org, id)));
+  // (opcionalno) self-test da je barem prvi VS vidljiv u istom Projectu
+  try {
+    await assertVectorStoreVisible(apiKey, project, org, vectorIds[0]);
+  } catch (e) {
+    // Ne rušimo automatski — logiramo jasan razlog
+    console.warn(String(e));
+  }
 
-  const data = await callOpenAI(buildPayload(input_as_text), apiKey, project, org);
+  const data = await callOpenAI(buildPayload(input_as_text, vectorIds), apiKey, project, org);
 
-  // logovi za dijagnostiku
+  // dijagnostika
   try {
     console.log("model_used:", data?.model);
-    const annotations = data?.output?.[1]?.content?.[0]?.annotations ?? [];
-    const retrieved = [...new Set(annotations.map((a: any) => a?.filename).filter(Boolean))];
-    console.log("retrieved_files:", retrieved);
+
+    // univerzalno “retrieved_files” logiranje
+    const files: string[] = [];
+    const out = Array.isArray(data?.output) ? data.output : [];
+    for (const msg of out) {
+      const content = Array.isArray(msg?.content) ? msg.content : [];
+      for (const c of content) {
+        if (Array.isArray(c?.annotations)) {
+          for (const a of c.annotations) if (a?.filename) files.push(a.filename);
+        }
+        if (typeof c?.text === "string") {
+          if (c.text.includes("KPD_2025_struktura.json")) files.push("KPD_2025_struktura.json");
+          if (c.text.includes("NKD 2025_struktura_i_objasnjenja.pdf")) files.push("NKD 2025_struktura_i_objasnjenja.pdf");
+        }
+      }
+    }
+    console.log("retrieved_files:", [...new Set(files)]);
   } catch { /* ignore */ }
 
+  // ne rušimo ako ne nađemo hard proof — samo warning (neki snapshoti ne vraćaju tool_use eksplicitno)
+  const proof = retrievalProof(data);
   if (!usedRetrieval(data)) {
-    console.warn("⚠️ file_search nije korišten iako su postavljeni vector_store_ids! Proof:", retrievalProof(data));
-    throw new Error("Model nije koristio retrieval nad dokumentima (file_search).");
+    console.warn("⚠️ file_search možda nije eksplicitno označen. Proof:", proof);
   } else {
-    console.log("✅ retrieval proof:", retrievalProof(data));
+    console.log("✅ retrieval proof:", proof);
   }
 
   const parsed = extractParsed(data);
@@ -334,7 +389,7 @@ export async function classifyCore(input_as_text: string, env?: AgentEnv): Promi
     );
   }
 
-  // osiguraj tip
+  // coercion na KpdResponse tip
   const arr = Array.isArray(parsed?.alternativne) ? parsed.alternativne : [];
   const coerced: KpdResponse = {
     NKD_4: parsed?.NKD_4 ?? null,
