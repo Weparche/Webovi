@@ -245,7 +245,7 @@ function buildPayload(input_as_text: string, vectorIds: string[] | null) {
         strict: true,
       },
     },
-    reasoning: { effort: "high" },
+    reasoning: { effort: "low" },
     
   };
 
