@@ -1,3 +1,5 @@
+import type { PagesFunction } from "@cloudflare/workers-types";
+
 export const onRequestPost: PagesFunction = async (ctx) => {
   try {
     const body = await ctx.request.json();
