@@ -247,7 +247,7 @@ const JSON_SCHEMA: Record<string, any> = {
  * ------------------------------------------------------------------ */
 
 /** Default VS – tvoj traženi store. Po želji dodaj još. */
-const DEFAULT_VECTOR_STORES = ["vs_68ba8cc0546c819187999473d98292a4"];
+const DEFAULT_VECTOR_STORES = ["vs_68f0cfbb2d9081918800e3eb92d9d483"];
 
 /** Složi listu VS-ova: prvo iz ENV-a (ako postoje), inače default. */
 function getVectorStoreIds(env?: AgentEnv): string[] {
