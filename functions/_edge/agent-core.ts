@@ -66,7 +66,7 @@ function parseStructured(data: any) {
   throw new Error(`OpenAI ne vraća parsabilan JSON (parser). Sample: ${sample}`);
 }
 
-async function callOpenAI(payload: any, apiKey: string, timeoutMs = 40_000) {
+async function callOpenAI(payload: any, apiKey: string, timeoutMs = 80_000) {
   const ctrl = new AbortController();
   const to = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
