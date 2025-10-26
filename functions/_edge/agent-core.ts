@@ -273,7 +273,7 @@ function buildPayload(input_as_text: string) {
     tools: [
       {
         type: "file_search",
-        vector_store_ids: ["vs_68ba8cc0546c819187999473d98292a4"],        
+        vector_store_ids: ["vs_68f0cfbb2d9081918800e3eb92d9d483"],        
       },
     ],
 
