@@ -296,7 +296,7 @@ export default function App() {
       {/* GLOBALNA POZADINA — 50% prozirna, preko cijele stranice */}
 <div
   aria-hidden="true"
-  className="pointer-events-none fixed inset-0 -z-10 bg-[url('/background.jpg')] bg-cover bg-center opacity-50"
+  className="pointer-events-none fixed inset-0 -z-10 bg-[url('/background.jpg')] bg-cover bg-center opacity-10"
 />
 
 
