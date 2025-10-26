@@ -236,7 +236,7 @@ function buildPayload(input_as_text: string, vectorIds: string[] | null) {
       },
     },
     reasoning: { effort: "low" },
-    temperature: 0.1,
+    
   };
 
   if (vectorIds && vectorIds.length) {
