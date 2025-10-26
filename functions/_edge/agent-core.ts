@@ -129,10 +129,10 @@ async function callOpenAI(payload: any, apiKey: string, project?: string) {
 
   try {
     const headers: Record<string, string> = {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    };
-    if (project) headers["OpenAI-Project"] = project; // Project scoping
+  Authorization: `Bearer ${apiKey}`,
+  "Content-Type": "application/json",
+};
+if (project) headers["OpenAI-Project"] = project; // proj_...
 
     const res = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
@@ -293,15 +293,23 @@ function buildPayload(input_as_text: string, vectorIds: string[]) {
       },
     },
     reasoning: { effort: "low" },
-  };
 
-  // Obvezno uveži file_search alat s VS ID-jevima i forsiraj poziv:
-  payload.tools = [{ type: "file_search" }];
-  payload.tool_resources = { file_search: { vector_store_ids: vectorIds } };
-  payload.tool_choice = { type: "file_search" };
+    // ✅ PRAVILNO: VS ID-evi direktno unutar tools
+    tools: [
+      {
+        type: "file_search",
+        vector_store_ids: vectorIds,
+        // (po želji) max_num_results: 8,
+      },
+    ],
+
+    // ✅ Forsiraj da prvo koristi file_search
+    tool_choice: { type: "file_search" },
+  };
 
   return payload;
 }
+
 
 /** ----------------------------- Main entry ----------------------------- */
 
