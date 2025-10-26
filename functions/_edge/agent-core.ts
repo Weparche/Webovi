@@ -1,8 +1,6 @@
 // functions/_edge/agent-core.ts
 
-/** ------------------------------------------------------------------
- *                           Types & Env
- * ------------------------------------------------------------------ */
+/** ----------------------------- Types ----------------------------- */
 
 export type KpdResponse = {
   NKD_4: string | null;
@@ -16,56 +14,12 @@ export type KpdResponse = {
 
 export type AgentEnv = {
   OPENAI_API_KEY?: string;
+  OPENAI_PROJECT?: string; // proj_...
   VS_NKD_ID?: string;
   VS_KPD_ID?: string;
 };
 
-type KpdJsonItem = {
-  // prilagodi po stvarnom formatu JSON-a; ova polja su najčešća
-  sifra?: string;
-  naziv?: string;
-  KPD_6?: string;
-  Naziv?: string;
-};
-
-/** ------------------------------------------------------------------
- *                           KPD Index (server-side verifikacija)
- * ------------------------------------------------------------------ */
-
-let KPD_INDEX: Map<string, string> | null = null; // KPD_6 -> Naziv
-let KPD_BY_PREFIX: Map<string, Array<{ KPD_6: string; Naziv: string }>> | null = null;
-
-/**
- * Inicijaliziraj server-side indeks iz već učitanog KPD JSON niza.
- * Pozovi jednom pri podizanju procesa (ili kada ti postane dostupan JSON).
- */
-export function setKpdDataset(kpdData: KpdJsonItem[]): void {
-  const idx = new Map<string, string>();
-  const byPref = new Map<string, Array<{ KPD_6: string; Naziv: string }>>();
-
-  for (const it of kpdData || []) {
-    const code =
-      (it.sifra ?? it.KPD_6 ?? "").toString().trim();
-    const name =
-      (it.naziv ?? it.Naziv ?? "").toString().trim();
-    if (!code || !/^\d{2}\.\d{2}\.\d{2}$/.test(code)) continue;
-
-    idx.set(code, name);
-
-    const prefix = code.slice(0, 5); // "dd.dd"
-    const arr = byPref.get(prefix) ?? [];
-    arr.push({ KPD_6: code, Naziv: name });
-    byPref.set(prefix, arr);
-  }
-
-  // finaliziraj
-  KPD_INDEX = idx;
-  KPD_BY_PREFIX = byPref;
-}
-
-/** ------------------------------------------------------------------
- *                           Utils
- * ------------------------------------------------------------------ */
+/** ----------------------------- Utils ----------------------------- */
 
 function coerceKpdResponse(obj: any): KpdResponse {
   const arr = Array.isArray(obj?.alternativne) ? obj.alternativne : [];
@@ -91,23 +45,18 @@ function coerceKpdResponse(obj: any): KpdResponse {
  * - fallback: pokuša parseati tekstualni JSON
  */
 function extractParsed(data: any): any | null {
-  // 1) Najčišće
   if (data?.output_parsed) return data.output_parsed;
 
-  // 2) Unutar output[] poruka
   const out = Array.isArray(data?.output) ? data.output : [];
   for (const item of out) {
-    // a) message.parsed (neki snapshotovi vraćaju ovako)
     if (item?.parsed) return item.parsed;
 
-    // b) content[*] s json-om
     const content = Array.isArray(item?.content) ? item.content : [];
     const jsonObj =
       content.find((c: any) => c?.type === "output_json" && c?.json)?.json ??
       content.find((c: any) => c?.type === "json" && c?.json)?.json;
     if (jsonObj && typeof jsonObj === "object") return jsonObj;
 
-    // c) content[*] tekst (ako netko bez json_schema)
     const textChunk =
       content.find((c: any) => typeof c?.text === "string")?.text ??
       content.find((c: any) => c?.type === "output_text" && typeof c?.text === "string")?.text;
@@ -123,7 +72,6 @@ function extractParsed(data: any): any | null {
     }
   }
 
-  // 3) Krajnji fallback — pogledaj root polja
   const maybeText = typeof data?.output_text === "string" ? data.output_text.trim() : "";
   if (maybeText && (maybeText.startsWith("{") || maybeText.startsWith("["))) {
     try {
@@ -132,19 +80,16 @@ function extractParsed(data: any): any | null {
       /* ignore */
     }
   }
-
   return null;
 }
 
-/** Vrati true ako se u odgovoru vidi ikakav poziv file_search alata */
+/** Detekcija korištenja file_search alata u odgovoru */
 function usedRetrieval(data: any): boolean {
   const out = Array.isArray(data?.output) ? data.output : [];
   for (const item of out) {
-    // novi format: tool_calls
     const toolCalls = Array.isArray(item?.tool_calls) ? item.tool_calls : [];
     if (toolCalls.some((tc: any) => (tc?.type || tc?.tool_type) === "file_search")) return true;
 
-    // alternativno: content -> tool_use
     const content = Array.isArray(item?.content) ? item.content : [];
     if (
       content.some(
@@ -157,7 +102,7 @@ function usedRetrieval(data: any): boolean {
   return false;
 }
 
-/** Vrati kratki "proof" string o korištenju retrievala (za log) */
+/** Kratki “proof” string (za log) o korištenju retrievala */
 function retrievalProof(data: any): string {
   const proofs: string[] = [];
   const out = Array.isArray(data?.output) ? data.output : [];
@@ -178,17 +123,20 @@ function retrievalProof(data: any): string {
   return proofs.join(" | ");
 }
 
-async function callOpenAI(payload: any, apiKey: string) {
+async function callOpenAI(payload: any, apiKey: string, project?: string) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 80_000);
 
   try {
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    };
+    if (project) headers["OpenAI-Project"] = project; // Project scoping
+
     const res = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify(payload),
       signal: ctrl.signal,
     });
@@ -210,9 +158,7 @@ async function callOpenAI(payload: any, apiKey: string) {
   }
 }
 
-/** ------------------------------------------------------------------
- *                           Prompt & JSON Schema
- * ------------------------------------------------------------------ */
+/** ----------------------------- Prompt & JSON Schema ----------------------------- */
 
 const SYSTEM_PROMPT = `🧠 KPD frik v6 — službene upute (Production Mode)
 🎯 Svrha
@@ -282,15 +228,17 @@ Ti si službeni KPD/NKD klasifikator. Uvijek moraš:
 fizički provjeriti šifre u dokumentima,
 vratiti točan JSON po shemi,
 osigurati da svako polje postoji (ako nema vrijednosti → null),
-i ne generirati nikakve dodatne podatke izvan strukture.`;
+i ne generirati nikakve dodatne podatke izvan strukture.
+DODATNO (operativno pravilo): Prije formiranja odgovora obavezno pozovi file_search nad učitanim dokumentima i oslanjaj se isključivo na rezultate pretraživanja.`;
 
+// Shema za striktni JSON izlaz (uz regex pattern-e)
 const JSON_SCHEMA: Record<string, any> = {
   type: "object",
   additionalProperties: false,
   properties: {
-    NKD_4: { type: ["string", "null"] },
+    NKD_4: { type: ["string", "null"], pattern: "^\\d{2}\\.\\d{2}(\\.\\d)?$" },
     NKD_naziv: { type: ["string", "null"] },
-    KPD_6: { type: ["string", "null"] },
+    KPD_6: { type: ["string", "null"], pattern: "^\\d{2}\\.\\d{2}\\.\\d{2}$" },
     Naziv_proizvoda: { type: ["string", "null"] },
     Razlog_odabira: { type: ["string", "null"] },
     Poruka: { type: ["string", "null"] },
@@ -300,7 +248,7 @@ const JSON_SCHEMA: Record<string, any> = {
         type: "object",
         additionalProperties: false,
         properties: {
-          KPD_6: { type: ["string", "null"] },
+          KPD_6: { type: ["string", "null"], pattern: "^\\d{2}\\.\\d{2}\\.\\d{2}$" },
           Naziv: { type: "string" },
           ["kratko_zašto"]: { type: ["string", "null"] },
         },
@@ -319,22 +267,17 @@ const JSON_SCHEMA: Record<string, any> = {
   ],
 };
 
-/** ------------------------------------------------------------------
- *                           Vector store IDs
- * ------------------------------------------------------------------ */
+/** ----------------------------- Vector store IDs ----------------------------- */
 
 const FALLBACK_VECTOR_STORE_ID = "vs_68f0cfbb2d9081918800e3eb92d9d483";
 
-/** Vrati objedinjene VS ID-jeve (NKD, KPD, fallback) */
 function getVectorStoreIds(env?: AgentEnv): string[] {
   return [env?.VS_NKD_ID, env?.VS_KPD_ID, FALLBACK_VECTOR_STORE_ID].filter(Boolean) as string[];
 }
 
-/** ------------------------------------------------------------------
- *                           Payload builder
- * ------------------------------------------------------------------ */
+/** ----------------------------- Payload builder ----------------------------- */
 
-function buildPayload(input_as_text: string, vectorIds: string[] | null) {
+function buildPayload(input_as_text: string, vectorIds: string[]) {
   const payload: any = {
     model: "gpt-5",
     input: [
@@ -352,160 +295,56 @@ function buildPayload(input_as_text: string, vectorIds: string[] | null) {
     reasoning: { effort: "low" },
   };
 
-  if (vectorIds && vectorIds.length) {
-    // ✅ PRAVILNO: vector_store_ids ide DIREKTNO u tools[i]
-    payload.tools = [{
-      type: "file_search",
-      vector_store_ids: vectorIds,
-      // (opcionalno) max_num_results: 8,
-    }];
-
-    // ✅ Ako želiš prisiliti poziv alata:
-    payload.tool_choice = { type: "file_search" };
-
-    // ⛔ Ukloni ovo ako ga imaš:
-    // payload.tool_resources = { file_search: { vector_store_ids: vectorIds } };
-  }
+  // Obvezno uveži file_search alat s VS ID-jevima i forsiraj poziv:
+  payload.tools = [{ type: "file_search" }];
+  payload.tool_resources = { file_search: { vector_store_ids: vectorIds } };
+  payload.tool_choice = { type: "file_search" };
 
   return payload;
 }
 
-
-/** ------------------------------------------------------------------
- *                   Server-side KPD verifikacija & “repair”
- * ------------------------------------------------------------------ */
-
-function verifyAndRepairKpdResult(resp: KpdResponse): KpdResponse {
-  if (!KPD_INDEX || !KPD_BY_PREFIX) return resp; // ako index nije inicijaliziran, ne diraj
-
-  const out = { ...resp };
-
-  // 1) Ako KPD_6 postoji — potvrdi da je stvaran
-  const kpd = out.KPD_6?.trim() || null;
-  if (kpd && !KPD_INDEX.has(kpd)) {
-    // nije stvaran -> poništi ga i pripremi poruku
-    out.KPD_6 = null;
-    out.Naziv_proizvoda = null;
-    out.Poruka = "Šifra nije pronađena u KPD 2025 bazi (server-side verifikacija).";
-  }
-
-  // 2) Ako KPD_6 je null, predloži do 3 alternative iz istog prefiksa (prema NKD_4 prve 4 znamenke)
-  const nkd4 = out.NKD_4?.trim() || "";
-  const nkdPrefixMatch = /^\d{2}\.\d{2}/.exec(nkd4);
-  const nkdPrefix = nkdPrefixMatch ? nkdPrefixMatch[0] : null;
-
-  if (!out.KPD_6 && nkdPrefix) {
-    const pool = (KPD_BY_PREFIX.get(nkdPrefix) || []).slice(0, 12);
-    const existing = new Set((out.alternativne || []).map(a => a.KPD_6 || ""));
-    const alts: Array<{ KPD_6: string; Naziv: string; ["kratko_zašto"]: string | null }> = [];
-
-    for (const it of pool) {
-      if (alts.length >= 3) break;
-      if (existing.has(it.KPD_6)) continue;
-      alts.push({
-        KPD_6: it.KPD_6,
-        Naziv: it.Naziv,
-        ["kratko_zašto"]: "Srodna šifra u istom prefiksu prema službenom KPD 2025 dokumentu.",
-      });
-    }
-
-    if (alts.length) {
-      out.alternativne = alts;
-      if (!out.Poruka) {
-        out.Poruka = "Za ovaj NKD nije potvrđena točna KPD šifra; predložene su srodne iz istog prefiksa.";
-      }
-    }
-  }
-
-  // 3) Ako KPD_6 postoji i Naziv_proizvoda je prazan -> popuni iz indeksa
-  if (out.KPD_6 && (!out.Naziv_proizvoda || !out.Naziv_proizvoda.trim())) {
-    const name = KPD_INDEX.get(out.KPD_6);
-    if (name) out.Naziv_proizvoda = name;
-  }
-
-  return out;
-}
-
-/** ------------------------------------------------------------------
- *                           Main entry
- * ------------------------------------------------------------------ */
+/** ----------------------------- Main entry ----------------------------- */
 
 export async function classifyCore(input_as_text: string, env?: AgentEnv): Promise<KpdResponse> {
   const apiKey = env?.OPENAI_API_KEY;
   if (!apiKey) {
-    throw new Error(
-      "OPENAI_API_KEY nije postavljen u Cloudflare Pages / Environment Variables (Production)."
-    );
+    throw new Error("OPENAI_API_KEY nije postavljen u okruženju.");
   }
 
   const vectorIds = getVectorStoreIds(env);
-
-  // 1) Pokušaj s file_search (ako postoje ID-evi)
-  try {
-    const data = await callOpenAI(buildPayload(input_as_text, vectorIds.length ? vectorIds : null), apiKey);
-
-    // INFO: Snapshot koji je poslužen
-    try {
-  console.log("model_used:", data?.model);
-  // Anotacije često sadrže pogodke iz vektor-storea
-  const annotations = data?.output?.[1]?.content?.[0]?.annotations ?? [];
-  const retrieved = [...new Set(annotations.map((a: any) => a?.filename).filter(Boolean))];
-  console.log("retrieved_files:", retrieved);
-} catch {}
-
-    // PROVJERA: je li zaista korišten retrieval
-    if (vectorIds.length && !usedRetrieval(data)) {
-      console.warn("⚠️ file_search nije korišten iako su postavljeni vector_store_ids! Proof:", retrievalProof(data));
-      throw new Error("Model nije koristio retrieval nad dokumentima (file_search).");
-    } else if (vectorIds.length) {
-      console.log("✅ retrieval proof:", retrievalProof(data));
-    }
-
-    const parsed = extractParsed(data);
-    if (!parsed) {
-      throw new Error(
-        `OpenAI ne vraća parsabilan JSON. Sample: ${JSON.stringify(
-          { output: data?.output?.slice?.(0, 1), output_text: data?.output_text ?? null },
-          null,
-          2
-        )}`
-      );
-    }
-
-    let coerced = coerceKpdResponse(parsed);
-    coerced = verifyAndRepairKpdResult(coerced);
-    return coerced;
-  } catch (e: any) {
-    const msg = String(e?.message || e);
-
-    // Ako je problem s retrievalom/vector storeom — fallback BEZ alata (svjesno)
-    const looksLikeVS =
-      msg.includes("vector_store") ||
-      msg.includes("file_search") ||
-      msg.includes("tool_resources") ||
-      msg.includes("vector") ||
-      msg.includes("store") ||
-      msg.includes("retrieval");
-
-    if (!looksLikeVS) throw e;
-
-    const dataNoTools = await callOpenAI(buildPayload(input_as_text, null), apiKey);
-
-    try { console.log("model_used (no-tools):", dataNoTools?.model); } catch {}
-
-    const parsedNoTools = extractParsed(dataNoTools);
-    if (!parsedNoTools) {
-      throw new Error(
-        `OpenAI ne vraća parsabilan JSON (bez file_search). Sample: ${JSON.stringify(
-          { output: dataNoTools?.output?.slice?.(0, 1), output_text: dataNoTools?.output_text ?? null },
-          null,
-          2
-        )}`
-      );
-    }
-
-    let coerced = coerceKpdResponse(parsedNoTools);
-    coerced = verifyAndRepairKpdResult(coerced);
-    return coerced;
+  if (!vectorIds.length) {
+    throw new Error("Nema dostupnih Vector Store ID-jeva (VS_NKD_ID/VS_KPD_ID/fallback).");
   }
+
+  // Poziv isključivo s file_search (bez fallbacka na “no-tools”, kako bi izbjegli halucinacije)
+  const data = await callOpenAI(buildPayload(input_as_text, vectorIds), apiKey, env?.OPENAI_PROJECT);
+
+  // Info logovi
+  try {
+    console.log("model_used:", data?.model);
+    const annotations = data?.output?.[1]?.content?.[0]?.annotations ?? [];
+    const retrieved = [...new Set(annotations.map((a: any) => a?.filename).filter(Boolean))];
+    console.log("retrieved_files:", retrieved);
+  } catch {}
+
+  // Verificiraj da je alat stvarno korišten
+  if (!usedRetrieval(data)) {
+    console.warn("⚠️ file_search nije korišten iako su postavljeni vector_store_ids! Proof:", retrievalProof(data));
+    throw new Error("Model nije koristio retrieval nad dokumentima (file_search).");
+  } else {
+    console.log("✅ retrieval proof:", retrievalProof(data));
+  }
+
+  const parsed = extractParsed(data);
+  if (!parsed) {
+    throw new Error(
+      `OpenAI ne vraća parsabilan JSON. Sample: ${JSON.stringify(
+        { output: data?.output?.slice?.(0, 1), output_text: data?.output_text ?? null },
+        null,
+        2
+      )}`
+    );
+  }
+
+  return coerceKpdResponse(parsed);
 }
