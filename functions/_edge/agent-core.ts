@@ -66,41 +66,28 @@ function parseStructured(data: any) {
   throw new Error(`OpenAI ne vraća parsabilan JSON (parser). Sample: ${sample}`);
 }
 
-async function callOpenAI(payload: any, apiKey: string) {
-  const CTRL_TIMEOUT_MS = 80_000; // 80s
+async function callOpenAI(payload: any, apiKey: string, timeoutMs = 40_000) {
   const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), CTRL_TIMEOUT_MS);
-
+  const to = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
     const res = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify(payload),
       signal: ctrl.signal,
     });
-
     const text = await res.text();
-    if (!res.ok) {
-      throw new Error(`OpenAI HTTP ${res.status}: ${text || res.statusText}`);
-    }
-
+    if (!res.ok) throw new Error(`OpenAI HTTP ${res.status}: ${text || res.statusText}`);
     try {
       return JSON.parse(text);
     } catch {
       throw new Error(`OpenAI JSON parse fail: ${text.slice(0, 300)}`);
     }
-  } catch (err: any) {
-    if (err?.name === "AbortError") {
-      throw new Error(`OpenAI request timeout nakon ${CTRL_TIMEOUT_MS} ms`);
-    }
-    throw err;
   } finally {
-    clearTimeout(t);
+    clearTimeout(to);
   }
 }
+
 
 // —————————— prompt + schema ——————————
 
@@ -215,6 +202,51 @@ const JSON_SCHEMA = {
   ],
 };
 
+function extractParsed(data: any): any | null {
+  // 1) Ako Responses API vrati globalni output_parsed — najbolje to
+  if (data?.output_parsed) return data.output_parsed;
+
+  // 2) Prođi kroz sve stavke u output
+  const arr = Array.isArray(data?.output) ? data.output : [];
+  for (const item of arr) {
+    if (item?.type === "message") {
+      // a) Ako je model već parsirao prema shemi
+      if (item.parsed) return item.parsed;
+
+      const content = Array.isArray(item.content) ? item.content : [];
+      // b) Ako je došao JSON kao objekt
+      const jsonChunk = content.find((c: any) => c?.type === "output_json" && c?.json);
+      if (jsonChunk?.json && typeof jsonChunk.json === "object") return jsonChunk.json;
+
+      // c) Ako je došao tekst → probaj parse
+      const textChunk = content.find((c: any) => c?.type === "output_text" && typeof c?.text === "string");
+      if (textChunk?.text) {
+        const t = String(textChunk.text).trim();
+        if (t.startsWith("{") || t.startsWith("[")) {
+          try { return JSON.parse(t); } catch {}
+        }
+      }
+    }
+  }
+
+  // 3) Fallback: ponekad sjedne i u data.message.content
+  const mc = data?.message?.content;
+  if (Array.isArray(mc)) {
+    const j = mc.find((c: any) => c?.type === "output_json" && c?.json)?.json;
+    if (j) return j;
+    const t = mc.find((c: any) => c?.type === "output_text" && typeof c?.text === "string")?.text;
+    if (t) {
+      const s = String(t).trim();
+      if (s.startsWith("{") || s.startsWith("[")) {
+        try { return JSON.parse(s); } catch {}
+      }
+    }
+  }
+
+  return null;
+}
+
+
 // —————————— payload ——————————
 
 function buildPayload(input_as_text: string, vectorIds: string[] | null) {
@@ -253,10 +285,16 @@ export async function classifyCore(input_as_text: string, env?: AgentEnv): Promi
   const vectorIds = [env?.VS_NKD_ID, env?.VS_KPD_ID].filter(Boolean) as string[];
 
   try {
-    // 1) pokušaj s file_search
-    const data = await callOpenAI(buildPayload(input_as_text, vectorIds.length ? vectorIds : null), apiKey);
-    const out = parseStructured(data);
-    return coerceKpdResponse(out);
+    // 1) s file_search
+const data = await callOpenAI(buildPayload(input_as_text, vectorIds), apiKey);
+const out = extractParsed(data);
+if (!out) throw new Error(`OpenAI ne vraća parsabilan JSON (parser). Sample: ${JSON.stringify({ 
+  output: data?.output?.slice?.(0,1), 
+  output_text: data?.output_text ?? null 
+})}`); 
+return coerceKpdResponse(out);
+
+
 
   } catch (err: any) {
     // ako je problem s VS/file_search, fallback bez alata
