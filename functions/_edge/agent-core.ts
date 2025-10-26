@@ -336,7 +336,7 @@ function getVectorStoreIds(env?: AgentEnv): string[] {
 
 function buildPayload(input_as_text: string, vectorIds: string[] | null) {
   const payload: any = {
-    model: "gpt-5", // ili snapshot: "gpt-5-2025-08-07" za potpuno fiksno ponašanje
+    model: "gpt-5",
     input: [
       { role: "system", content: [{ type: "input_text", text: SYSTEM_PROMPT }] },
       { role: "user", content: [{ type: "input_text", text: input_as_text }] },
@@ -353,14 +353,23 @@ function buildPayload(input_as_text: string, vectorIds: string[] | null) {
   };
 
   if (vectorIds && vectorIds.length) {
-    payload.tools = [{ type: "file_search" }];
-    payload.tool_resources = { file_search: { vector_store_ids: vectorIds } };
-    // prisili barem jedan poziv file_search alata
+    // ✅ PRAVILNO: vector_store_ids ide DIREKTNO u tools[i]
+    payload.tools = [{
+      type: "file_search",
+      vector_store_ids: vectorIds,
+      // (opcionalno) max_num_results: 8,
+    }];
+
+    // ✅ Ako želiš prisiliti poziv alata:
     payload.tool_choice = { type: "file_search" };
+
+    // ⛔ Ukloni ovo ako ga imaš:
+    // payload.tool_resources = { file_search: { vector_store_ids: vectorIds } };
   }
 
   return payload;
 }
+
 
 /** ------------------------------------------------------------------
  *                   Server-side KPD verifikacija & “repair”
@@ -436,7 +445,13 @@ export async function classifyCore(input_as_text: string, env?: AgentEnv): Promi
     const data = await callOpenAI(buildPayload(input_as_text, vectorIds.length ? vectorIds : null), apiKey);
 
     // INFO: Snapshot koji je poslužen
-    try { console.log("model_used:", data?.model); } catch {}
+    try {
+  console.log("model_used:", data?.model);
+  // Anotacije često sadrže pogodke iz vektor-storea
+  const annotations = data?.output?.[1]?.content?.[0]?.annotations ?? [];
+  const retrieved = [...new Set(annotations.map((a: any) => a?.filename).filter(Boolean))];
+  console.log("retrieved_files:", retrieved);
+} catch {}
 
     // PROVJERA: je li zaista korišten retrieval
     if (vectorIds.length && !usedRetrieval(data)) {
