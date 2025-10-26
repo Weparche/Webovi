@@ -146,21 +146,41 @@ const JSON_SCHEMA = {
 
 
 async function callOpenAI(payload: any, apiKey: string) {
-  const res = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  const text = await res.text();
-  if (!res.ok) {
-    throw new Error(`OpenAI HTTP ${res.status}: ${text || res.statusText}`);
-  }
+  const CTRL_TIMEOUT_MS = 80_000; // 80s
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), CTRL_TIMEOUT_MS);
+
   try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error(`OpenAI JSON parse fail: ${text.slice(0, 300)}`);
+    const res = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+      signal: ctrl.signal, // ⬅️ bitno: proslijedi signal
+    });
+
+    const text = await res.text();
+    if (!res.ok) {
+      throw new Error(`OpenAI HTTP ${res.status}: ${text || res.statusText}`);
+    }
+
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new Error(`OpenAI JSON parse fail: ${text.slice(0, 300)}`);
+    }
+  } catch (err: any) {
+    if (err?.name === "AbortError") {
+      throw new Error(`OpenAI request timeout nakon ${CTRL_TIMEOUT_MS} ms`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(t); // ⬅️ očisti timer
   }
 }
+
 
 function buildPayload(input_as_text: string, vectorIds: string[] | null) {
   return {
@@ -184,45 +204,74 @@ function buildPayload(input_as_text: string, vectorIds: string[] | null) {
   };
 }
 
+// --- DODAJ OVO u functions/_edge/agent-core.ts (iznad classifyCore) ---
+function parseStructured(data: any) {
+  // 1) Najčešći: top-level parsed
+  if (data?.output_parsed) return data.output_parsed;
+
+  // 2) Često kod text.format=json_schema: content[i].parsed
+  const firstMsg = Array.isArray(data?.output) ? data.output[0] : null;
+  if (Array.isArray(firstMsg?.content)) {
+    const withParsed = firstMsg.content.find((c: any) => c && typeof c === "object" && "parsed" in c && c.parsed);
+    if (withParsed?.parsed) return withParsed.parsed;
+  }
+
+  // 3) Fallback: izvuci JSON iz tekstualnog dijela
+  const textCandidate =
+    firstMsg?.content?.find((c: any) => c?.type === "output_text")?.text ??
+    data?.output_text ??
+    "";
+
+  if (typeof textCandidate === "string") {
+    const m = textCandidate.match(/\{[\s\S]*\}/);
+    if (m) return JSON.parse(m[0]);
+  }
+
+  const sample = JSON.stringify(
+    { output: data?.output?.slice?.(0,1) ?? data?.output ?? null, output_text: data?.output_text ?? null },
+    null,
+    2
+  ).slice(0, 600);
+  throw new Error(`OpenAI ne vraća parsabilan JSON (parser). Sample: ${sample}`);
+}
+
+
 export async function classifyCore(input_as_text: string, env?: AgentEnv): Promise<KpdResponse> {
   const apiKey = env?.OPENAI_API_KEY;
-  if (!apiKey) throw new Error("OPENAI_API_KEY nije postavljen u Pages > Settings > Environment Variables (Production).");
+  if (!apiKey) {
+    throw new Error(
+      "OPENAI_API_KEY nije postavljen u Cloudflare Pages > Settings > Environment Variables (Production)."
+    );
+  }
 
-  const vectorIds = [env?.VS_NKD_ID, env?.VS_KPD_ID].filter(Boolean) as string[]; // bez fallbacka – držimo se tvojih ID-eva
+  // Ako imaš vector store ID-eve, prvo probaj s file_search
+  const vectorIds = [env?.VS_NKD_ID, env?.VS_KPD_ID].filter(Boolean) as string[];
+
   try {
-    // 1) Pokušaj s file_search
-    const data = await callOpenAI(buildPayload(input_as_text, vectorIds), apiKey);
-    const out =
-      data?.output_parsed ??
-      (() => {
-        const t =
-          data?.output?.[0]?.content?.find((c: any) => c?.type === "output_text")?.text ??
-          data?.output_text ??
-          "";
-        return t && t.trim().startsWith("{") ? JSON.parse(t) : null;
-      })();
-
-    if (!out) throw new Error("OpenAI ne vraća parsabilan JSON (s file_search).");
+    // 1) pokušaj s file_search
+    const data = await callOpenAI(buildPayload(input_as_text, vectorIds.length ? vectorIds : null), apiKey);
+    const out = parseStructured(data);
     return coerceKpdResponse(out);
+
   } catch (err: any) {
-    // 2) Ako je problem oko vektorskih storeova, pokušaj BEZ alata da izoliraš auth/model
+    // Ako je greška očito vezana uz VS/file_search, pokušaj bez alata
     const msg = String(err?.message || err);
     const looksLikeVS =
-      msg.includes("vector_store") || msg.includes("file_search") || msg.includes("tool_resources");
-    if (!looksLikeVS) throw err; // nije VS problem – digni grešku
+      msg.includes("vector_store") ||
+      msg.includes("file_search") ||
+      msg.includes("tool_resources") ||
+      msg.includes("vector") ||
+      msg.includes("store");
 
-    const data = await callOpenAI(buildPayload(input_as_text, null), apiKey);
-    const out =
-      data?.output_parsed ??
-      (() => {
-        const t =
-          data?.output?.[0]?.content?.find((c: any) => c?.type === "output_text")?.text ??
-          data?.output_text ??
-          "";
-        return t && t.trim().startsWith("{") ? JSON.parse(t) : null;
-      })();
+    if (!looksLikeVS) {
+      // nije VS problem → digni točno ovu grešku
+      throw err;
+    }
 
-    if (!out) throw new Error("OpenAI ne vraća parsabilan JSON (bez file_search).");
-    return coerceKpdResponse(out);
+    // 2) fallback bez file_search (izoliraš model/API ključ)
+    const dataNoTools = await callOpenAI(buildPayload(input_as_text, null), apiKey);
+    const outNoTools = parseStructured(dataNoTools);
+    return coerceKpdResponse(outNoTools);
   }
 }
+
