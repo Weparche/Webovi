@@ -94,12 +94,14 @@ export default function App() {
   const [data, setData] = useState<KpdResponse | null>(null);
   const [rawJson, setRawJson] = useState("{}");
   const [dark, setDark] = useState(false);
-  const [apiUrl] = useState<string>(
-    import.meta.env.VITE_API_URL ||
-      ((location.hostname === "localhost" || location.hostname.startsWith("192.168."))
-        ? "http://localhost:3001/api/kpdinfo/classify"
-        : "/api/kpdinfo/classify")
-  );
+  // const [apiUrl] = useState<string>(
+  //   import.meta.env.VITE_API_URL ||
+  //     ((location.hostname === "localhost" || location.hostname.startsWith("192.168."))
+  //       ? "http://localhost:3001/api/kpdinfo/classify"
+  //       : "/api/kpdinfo/classify")
+  // );
+
+  const [apiUrl] = useState<string>("/api/kpdinfo/classify");
 
   /** --------- CAPTCHA (jednostavna zbrajalica) ---------- */
   const [capA, setCapA] = useState(0);
@@ -190,29 +192,25 @@ export default function App() {
   }
 
   async function runCore(text: string) {
-    setError(null);
-    setLoading(true);
-    setData(null);
-    setRawJson("{}");
-    try {
-      let resp: KpdResponse;
-      try {
-        resp = await callApi(text);
-      } catch {
-        console.warn("API nedostupan, demo");
-        resp = demoMock(text);
-      }
-      validateResponse(resp);
-      setData(resp);
-      setRawJson(pretty(resp));
-      pushHistoryTop(text, resp);
-    } catch (e: any) {
-      setError(e?.message ?? String(e));
-    } finally {
-      setLoading(false);
-      regenCaptcha();
-    }
+  setError(null);
+  setLoading(true);
+  setData(null);
+  setRawJson("{}");
+
+  try {
+    const resp = await callApi(text);        // mora vratiti KpdResponse
+    validateResponse(resp);                  // baci grešku ako schema ne valja
+    setData(resp);
+    setRawJson(pretty(resp));
+    pushHistoryTop(text, resp);
+  } catch (e: any) {
+    setError(e?.message ?? String(e));
+  } finally {
+    setLoading(false);
+    regenCaptcha();
   }
+}
+
 
   async function run() {
     const q = query.trim();
