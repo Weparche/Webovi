@@ -1,6 +1,8 @@
 import React from "react";
 import { Button } from "@/components/ui/Button";
 import { Moon, SunMedium, Sparkles, Home } from "lucide-react";
+import logoUrl from '../assets/logo.png';      // ✅
+import chatgptUrl from '../assets/chatgpt.png';
 
 type HeaderProps = {
   dark: boolean;
@@ -19,7 +21,7 @@ export default function Header({ dark, setDark }: HeaderProps) {
         <div className="flex items-center gap-2 min-w-0">
           <a href="/" title="Početna" className="shrink-0">
             <img
-              src="../assets/logo.png"
+              src={logoUrl}
               alt="KPD info logo"
               className="h-13 w-13 md:h-13 md:w-13 rounded-lg object-contain bg-white/70 dark:bg-slate-800/60 p-0.5 shadow-sm"
             />
@@ -41,7 +43,7 @@ export default function Header({ dark, setDark }: HeaderProps) {
       Powered by Chat GPT-5
     </span>
     <img
-      src="./chatgpt.png"
+      src={chatgptUrl}
       alt="ChatGPT"
       className="h-4 w-auto md:h-5 select-none"
       draggable="false"
