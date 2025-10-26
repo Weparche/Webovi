@@ -244,11 +244,11 @@ export default function App() {
       KPD_6: "47.55.01",
       KPD_naziv: "Usluge trgovine na malo namještajem",
       Razlog_odabira:
-        "Prodaja stolica spada u trgovinu na malo namještajem prema službenom opisu podrazreda.",
+        "Opis „prodaja stolice u salonu” upućuje na specijaliziranu trgovinu na malo namještajem; NKD 47.55.0 izričito uključuje trgovinu na malo namještajem (uključujući madrace i podnice) te ostalom opremom za kućanstvo . U KPD-u, unutar istog prefiksa, šifra 47.55.01 je „Usluge trgovine na malo namještajem”, što najuže odgovara prodaji stolica u salonu.",
       alternativne: [
-        { KPD_6: "47.55.02", Naziv: "Usluge trgovine na malo opremom za rasvjetu", "kratko_zašto": "Ako je asortiman proširen na srodne proizvode od drva/pluta/pruća." },
-        { KPD_6: "47.55.03", Naziv: "Usluge trgovine na malo drvenim, plutenim i pletarskim proizvodima", "kratko_zašto": "Ako se radi o specijaliziranim artiklima." },
-        { KPD_6: "47.55.04", Naziv: " Usluge trgovine na malo grnčarijom, staklenim proizvodima, porculanom, loncima, priborom za jelo i neelektričnim aparatima za kućanstvo, proizvodima i opremom", "kratko_zašto": "Ako salon prodaje i širi asortiman kućanskih proizvoda iz ove skupine." },
+        { KPD_6: "47.55.02", Naziv: "Usluge trgovine na malo opremom za rasvjetu", "kratko_zašto": "Relevantno ako se u istom salonu prodaje i rasvjeta uz namještaj ." },
+        { KPD_6: "47.55.03", Naziv: "Usluge trgovine na malo drvenim, plutenim i pletarskim proizvodima", "kratko_zašto": "Moguće ako je asortiman proširen na proizvode od drva/pluta/pruća za kućanstvo ." },
+        { KPD_6: "47.55.04", Naziv: " Usluge trgovine na malo grnčarijom, staklenim proizvodima, porculanom, loncima, priborom za jelo i neelektričnim aparatima za kućanstvo, proizvodima i opremom", "kratko_zašto": "Primjenjivo ako salon nudi i prateće artikle za opremanje doma uz namještaj ." },
       ],
     },
     {
