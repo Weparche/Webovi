@@ -9,39 +9,43 @@ import { AltItem, KpdResponse, pretty, validateResponse } from "@/types";
 
 
 /** --- DEMO fallback (koristi se samo ako API padne) --- */
-function demoMock(query: string): KpdResponse {
-  const isWeb = /web|stranic/i.test(query);
-  if (isWeb) {
-    return {
-      NKD_4: "62.01.0",
-      NKD_naziv: "računalno programiranje po narudžbi",
-      KPD_6: null,
-      Naziv_proizvoda: null,
-      Razlog_odabira:
-        "Izrada web stranice spada u računalno programiranje po narudžbi (NKD 62.01.0).",
-      Poruka:
-        "Za ovaj NKD ne postoji precizna KPD šifra. Predlažemo srodne iz istog područja.",
-      alternativne: [
-        { KPD_6: "62.01.01", Naziv: "Usluge izrade računalnih programa po narudžbi", "kratko_zašto": "Ako uključuje razvoj rješenja." },
-        { KPD_6: "62.02.01", Naziv: "Usluge savjetovanja u vezi s računalima", "kratko_zašto": "Ako je fokus na savjetovanju." },
-        { KPD_6: "63.11.01", Naziv: "Usluge web portala", "kratko_zašto": "Ako se radi o portalu/održavanju." },
-      ],
-    };
-  }
-  return {
-    NKD_4: "47.55.0",
-    NKD_naziv: "trgovina na malo namještajem",
-    KPD_6: "47.55.01",
-    Naziv_proizvoda: "Usluge trgovine na malo namještajem",
-    Razlog_odabira:
-      "Prodaja stolica u salonu spada u trgovinu na malo namještajem (NKD 47.55.0); KPD 47.55.01 pokriva ovu djelatnost.",
-    Poruka: null,
-    alternativne: [
-      { KPD_6: "47.59.01", Naziv: "Usluge trgovine na malo ostalim kućanskim proizvodima", "kratko_zašto": "Ako nije striktno namještaj." },
-      { KPD_6: "47.59.09", Naziv: "Ostale usluge trgovine na malo posebnih proizvoda", "kratko_zašto": "Srodno području trgovine." },
-    ],
-  };
-}
+// function demoMock(query: string): KpdResponse {
+//   const isWeb = /web|stranic/i.test(query);
+//   if (isWeb) {
+//     return {
+//       NKD_4: "62.01.0",
+//       NKD_naziv: "računalno programiranje po narudžbi",
+//       KPD_6: null,
+//       Naziv_proizvoda: null,
+//       Razlog_odabira:
+//         "Izrada web stranice spada u računalno programiranje po narudžbi (NKD 62.01.0).",
+//       Poruka:
+//         "Za ovaj NKD ne postoji precizna KPD šifra. Predlažemo srodne iz istog područja.",
+//       alternativne: [
+//         { KPD_6: "62.01.01", Naziv: "Usluge izrade računalnih programa po narudžbi", "kratko_zašto": "Ako uključuje razvoj rješenja." },
+//         { KPD_6: "62.02.01", Naziv: "Usluge savjetovanja u vezi s računalima", "kratko_zašto": "Ako je fokus na savjetovanju." },
+//         { KPD_6: "63.11.01", Naziv: "Usluge web portala", "kratko_zašto": "Ako se radi o portalu/održavanju." },
+//       ],
+//     };
+//   }
+//   return {
+//     NKD_4: "47.55.0",
+//     NKD_naziv: "trgovina na malo namještajem",
+//     KPD_6: "47.55.01",
+//     Naziv_proizvoda: "Usluge trgovine na malo namještajem",
+//     Razlog_odabira:
+//       "Prodaja stolica u salonu spada u trgovinu na malo namještajem (NKD 47.55.0); KPD 47.55.01 pokriva ovu djelatnost.",
+//     Poruka: null,
+//     alternativne: [
+//       { KPD_6: "47.59.01", Naziv: "Usluge trgovine na malo ostalim kućanskim proizvodima", "kratko_zašto": "Ako nije striktno namještaj." },
+//       { KPD_6: "47.59.09", Naziv: "Ostale usluge trgovine na malo posebnih proizvoda", "kratko_zašto": "Srodno području trgovine." },
+//     ],
+//   };
+// }
+
+useEffect(() => {
+  console.log("BUILD MARKER: api-only");
+}, []);
 
 /** ---- Tip za stavku povijesti (snapshot) ---- */
 type HistItem = {
@@ -199,6 +203,7 @@ export default function App() {
 
   try {
     const resp = await callApi(text);        // mora vratiti KpdResponse
+    console.log("API RESP:", resp);
     validateResponse(resp);                  // baci grešku ako schema ne valja
     setData(resp);
     setRawJson(pretty(resp));
