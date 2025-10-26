@@ -22,83 +22,6 @@ export type AgentEnv = {
 };
 
 /** ------------------------------------------------------------------
- *                      Mini-indeksi & hintovi (spojena nova logika)
- * ------------------------------------------------------------------ */
-
-// Sektorski ključni pojmovi (A–V) → brza detekcija područja
-const SEKTOR_KLJ: Record<string, string[]> = {
-  A: ["uzgoj","sadnja","berba","stoka","perad","pčele","farma","vinograd","masline"],
-  B: ["rudar","kamenolom","vađenje","boksit","lignit"],
-  C: ["proizvodnja","tvornica","sklapanje","prerada"],
-  D: ["električna energija","plin","para","klimatizacija (opsr.)"],
-  E: ["vodoopskrba","otpadne vode","gospodarenje otpadom","sanacija"],
-  F: ["gradnja","adaptacija","rekonstrukcija","instalacija","elektroinstalacije","vodoinstalater","klima uređaj","izolacija","montaža","ugradnja"],
-  G: ["trgovina","prodaja","maloprodaja","veleprodaja","salon","dućan","shop"],
-  H: ["prijevoz","dostava","logistika","skladište"],
-  I: ["smještaj","restoran","catering","bar","kafić"],
-  J: ["izdavanje","emitiranje","produkcija sadržaja"],
-  K: ["telekom","programiranje","softver","web stranica","hosting","data centar","ai","aplikacija"],
-  L: ["financije","investicijski fond","osiguranje"],
-  M: ["nekretnine","najam poslovnog prostora"],
-  N: ["pravnik","računovođa","arhitekt","znanstveni"],
-  O: ["iznajmljivanje opreme","call centar","organizacija događaja"],
-  P: ["javna uprava","obrana"],
-  Q: ["škola","obrazovanje","tečaj"],
-  R: ["zdravstvo","socijalna skrb","fizioterapija"],
-  S: ["sport","rekreacija","umjetnost","zabava"],
-  T: ["frizer","kozmetičke usluge","popravci za kućanstvo"],
-  U: ["kućanstva poslodavci","proizvodnja za vlastite potrebe"],
-  V: ["izvanteritorijalne organizacije"],
-};
-
-// Rasponi (tiskano paginiranje NKD PDF-a) po područjima
-const NKD_RASPONI_PODRUČJA: Record<string, [number, number]> = {
-  A:[141,158], B:[158,170], C:[165,268], D:[269,271], E:[271,276],
-  F:[276,281], G:[282,312], H:[313,328], I:[328,329], J:[329,336],
-  K:[336,347], L:[347,356], M:[357,364], N:[365,377], O:[378,392],
-  P:[393,399], Q:[400,406], R:[407,416], S:[417,426], T:[426,427],
-  U:[427,428], V:[429,432],
-};
-
-// Hintovi za česte NKD prefikse (dd.dd)
-const NKD_PREFIX_HINTS: Record<string, [number, number]> = {
-  "43.21":[277,278], "43.22":[278,279], "43.23":[279,280],
-  "47.53":[303,305], "47.54":[303,305], "47.55":[304,306],
-  "62.10":[339,341], "62.20":[340,342], "63.10":[341,343], "63.91":[342,343],
-};
-
-// Domena-pojmovi → NKD prefiksi (brza mapa)
-const NKD_PREFIXI: Record<string, string[]> = {
-  stolica:["47.55"], namještaj:["47.55"],
-  klima:["43.22"], klimatizacija:["43.22"],
-  web:["62.10","62.20","63.10","63.91"], stranica:["62.10","62.20","63.10","63.91"],
-  kuhinja:["47.59","43.32"],
-};
-
-function normalizeQuery(q: string) {
-  return q.toLowerCase().replace(/\s+/g, " ").trim();
-}
-
-function computeSectorAndPages(userText: string) {
-  const qn = normalizeQuery(userText);
-  // sektor score
-  let sektor = "G"; let best = -1;
-  for (const [s, keys] of Object.entries(SEKTOR_KLJ)) {
-    const sc = keys.reduce((acc,k)=> acc + (qn.includes(k) ? 1 : 0), 0);
-    if (sc > best) { best = sc; sektor = s; }
-  }
-  // base pages
-  const pages: [number,number][] = [];
-  if (NKD_RASPONI_PODRUČJA[sektor]) pages.push(NKD_RASPONI_PODRUČJA[sektor]);
-  // dodatni uži hintovi
-  const kandidati = Object.entries(NKD_PREFIXI).filter(([k])=> qn.includes(k)).flatMap(([,arr])=>arr);
-  for (const p of kandidati) if (NKD_PREFIX_HINTS[p]) pages.push(NKD_PREFIX_HINTS[p]);
-  // fallback
-  if (!pages.length) pages.push([1,9999]);
-  return { sektor, pages } as { sektor: string; pages: [number,number][] };
-}
-
-/** ------------------------------------------------------------------
  *                              Utils
  * ------------------------------------------------------------------ */
 
@@ -205,6 +128,52 @@ function retrievalProof(data: any): string {
   return proofs.join(" | ");
 }
 
+/** HTTP wrapper prema OpenAI Responses API-ju, s Project/Org/Beta headerima */
+async function callOpenAI(payload: any, apiKey: string, project?: string, org?: string) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 80_000);
+  try {
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      ...(project ? { "OpenAI-Project": project } : {}),
+      ...(org ? { "OpenAI-Organization": org } : {}),
+      "OpenAI-Beta": "assistants=v2",
+    };
+
+    const res = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers,
+      body: JSON.stringify(payload),
+      signal: ctrl.signal,
+    });
+
+    const text = await res.text();
+    if (!res.ok) throw new Error(`OpenAI HTTP ${res.status}: ${text || res.statusText}`);
+
+    let data: any;
+    try { data = JSON.parse(text); }
+    catch { throw new Error(`OpenAI JSON parse fail: ${text.slice(0, 300)}`); }
+
+    return data;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+/** (opcionalno) GET na VS radi provjere vidljivosti — koristi iste headere kao i Responses */
+async function assertVectorStoreVisible(apiKey: string, project: string | undefined, org: string | undefined, vsId: string) {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${apiKey}`,
+    "Content-Type": "application/json",
+    ...(project ? { "OpenAI-Project": project } : {}),
+    ...(org ? { "OpenAI-Organization": org } : {}),
+    "OpenAI-Beta": "assistants=v2",
+  };
+  const r = await fetch(`https://api.openai.com/v1/vector_stores/${vsId}`, { headers });
+  if (!r.ok) throw new Error(`Vector store ${vsId} nije vidljiv. HTTP ${r.status}: ${await r.text()}`);
+}
+
 /** ------------------------------------------------------------------
  *                      Prompt & JSON Schema
  * ------------------------------------------------------------------ */
@@ -238,8 +207,8 @@ Provjeri da "KPD_6" postoji u KPD_2025_struktura.json.
 Ako ne postoji, vrati:
 "KPD_6": null, "Poruka": "Šifra nije pronađena u KPD 2025 bazi.", "alternativne": [ ... ] 
 Regex validacija:
-"NKD_4" → ^\\d{2}\\.\\d{2}(\\.\\d)?$
-"KPD_6" → ^\\d{2}\\.\\d{2}\\.\\d{2}$
+"NKD_4" → ^\d{2}\.\d{2}(\.\d)?$
+"KPD_6" → ^\d{2}\.\d{2}\.\d{2}$
 Vrati točno jedan JSON objekt (nikada više njih).
 U “strict” režimu svi parametri moraju biti prisutni (ako ih nema, koristi null).
  Format odgovora
@@ -327,36 +296,20 @@ function getVectorStoreIds(env?: AgentEnv): string[] {
   return Array.from(new Set(base));
 }
 
-/** Sastavi A/B hint blok za prompt (A = uski page-range, B = prošireni) */
-function buildHintsBlock(userText: string) {
-  const { sektor, pages } = computeSectorAndPages(userText);
-  const A = pages.map(([s,e])=>`${s}-${e}`).join(", ");
-  const widened = pages.map(([s,e])=>`${Math.max(1,s-50)}-${e+50}`).join(", ");
-  return { sektor, pages, text:
-    `HINTS\n- Detektirani NKD sektor: ${sektor}\n- Pass A (usko pretraživanje pdf_page): ${A}\n- Pass B (fallback šire): ${widened}\nU Pass A koristi najviše 3 rezultata i 6 chunkova; u Pass B najviše 5 rezultata i 10 chunkova.`
-  } as { sektor:string; pages:[number,number][]; text:string };
-}
-
-/** Payload za Responses: gpt-5 + prisilni file_search, s prefilter hintovima (spojena logika) */
+/** Payload za Responses: gpt-5 + prisilni file_search (bez attachments/tool_resources) */
 function buildPayload(input_as_text: string, vectorIds: string[]) {
-  const hb = buildHintsBlock(input_as_text);
-  const userWithPlan = [
-    `ZADATAK\n${input_as_text}`,
-    hb.text,
-    `Upute za alat:\n- Moraš koristiti file_search nad priloženim dokumentima.\n- U Pass A fokusiraj pretragu NKD PDF-a na navedene page-rangeove; ako ne nađeš valjan NKD podrazred, tek tada napravi Pass B.\n- Nakon NKD prefiksa (prve 4 znamenke), u KPD JSON-u filtriraj točan prefiks i odaberi stvarni KPD zapis (6 znamenki).\n- Uvijek validiraj regexe i formatiraj odgovor prema zadanoj JSON shemi.`
-  ].join("\n\n");
-
   return {
     model: "gpt-5",
     input: [
       { role: "system", content: [{ type: "input_text", text: SYSTEM_PROMPT }] },
-      { role: "user", content: [{ type: "input_text", text: userWithPlan }] },
+      { role: "user", content: [{ type: "input_text", text: input_as_text }] },
     ],
     text: {
       format: { type: "json_schema", name: "KpdResponse", schema: JSON_SCHEMA, strict: true },
     },
     reasoning: { effort: "low" },
 
+    // deklariraj file_search alat i veži VS ID-jeve
     tools: [
       {
         type: "file_search",
@@ -365,6 +318,10 @@ function buildPayload(input_as_text: string, vectorIds: string[]) {
       },
     ],
 
+    // prisili korištenje file_search (format koji snapshot prihvaća)
+    // tool_choice: { type: "file_search" },
+
+    // vrati rezultate pretrage u included (ako snapshot podržava)
     include: ["file_search_call.results"],
   };
 }
@@ -373,65 +330,9 @@ function buildPayload(input_as_text: string, vectorIds: string[]) {
  *                            Public API
  * ------------------------------------------------------------------ */
 
-/** HTTP wrapper prema OpenAI Responses API-ju, s Project/Org/Beta headerima */
-async function callOpenAI(payload: any, apiKey: string, project?: string, org?: string) {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 80_000);
-  try {
-    const headers: Record<string, string> = {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      ...(project ? { "OpenAI-Project": project } : {}),
-      ...(org ? { "OpenAI-Organization": org } : {}),
-      "OpenAI-Beta": "assistants=v2",
-    };
-
-    const res = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload),
-      signal: ctrl.signal,
-    });
-
-    const text = await res.text();
-    if (!res.ok) throw new Error(`OpenAI HTTP ${res.status}: ${text || res.statusText}`);
-
-    let data: any;
-    try { data = JSON.parse(text); }
-    catch { throw new Error(`OpenAI JSON parse fail: ${text.slice(0, 300)}`); }
-
-    return data;
-  } finally {
-    clearTimeout(t);
-  }
-}
-
-/** (opcionalno) GET na VS radi provjere vidljivosti — koristi iste headere kao i Responses */
-async function assertVectorStoreVisible(apiKey: string, project: string | undefined, org: string | undefined, vsId: string) {
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${apiKey}`,
-    "Content-Type": "application/json",
-    ...(project ? { "OpenAI-Project": project } : {}),
-    ...(org ? { "OpenAI-Organization": org } : {}),
-    "OpenAI-Beta": "assistants=v2",
-  };
-  const r = await fetch(`https://api.openai.com/v1/vector_stores/${vsId}`, { headers });
-  if (!r.ok) throw new Error(`Vector store ${vsId} nije vidljiv. HTTP ${r.status}: ${await r.text()}`);
-}
-
-// /** Složi listu VS-ova: prvo iz ENV-a (ako postoje), inače default. */
-// function getVectorStoreIds(env?: AgentEnv): string[] {
-//   const fromEnv = [env?.VS_NKD_ID, env?.VS_KPD_ID].filter(Boolean) as string[];
-//   const base = (fromEnv.length ? fromEnv : DEFAULT_VECTOR_STORES);
-//   return Array.from(new Set(base));
-// }
-
-// /** Default fallback VS – tvoj ID */
-// const DEFAULT_VECTOR_STORES = ["vs_68f0cfbb2d9081918800e3eb92d9d483"];
-
 /**
- * Izvrši klasifikaciju NKD/KPD strogo na temelju dokumenata u Vector Storeu,
- * uz A/B plan pretraživanja (hintovi sektora i stranica) i strogi JSON output.
+ * Izvrši klasifikaciju NKD/KPD strogo na temelju dokumenata u Vector Storeu.
+ * Nema lokalnog JSON-a; nema fallbacka bez alata.
  */
 export async function classifyCore(input_as_text: string, env?: AgentEnv): Promise<KpdResponse> {
   const apiKey = env?.OPENAI_API_KEY;
@@ -446,6 +347,7 @@ export async function classifyCore(input_as_text: string, env?: AgentEnv): Promi
   try {
     await assertVectorStoreVisible(apiKey, project, org, vectorIds[0]);
   } catch (e) {
+    // Ne rušimo automatski — logiramo jasan razlog
     console.warn(String(e));
   }
 
