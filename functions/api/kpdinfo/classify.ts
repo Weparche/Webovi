@@ -1,6 +1,4 @@
 // functions/api/kpdinfo/classify.ts
-// Jednostavan handler: prima { input_as_text }, zove runWorkflow, vraća KpdResponse.
-
 import { runWorkflow } from "../../../server/src/agent";
 
 export const onRequestPost = async (ctx: any): Promise<Response> => {
@@ -15,10 +13,10 @@ export const onRequestPost = async (ctx: any): Promise<Response> => {
       });
     }
 
-    // Poziv agenta — proslijedi Cloudflare env (OPENAI_API_KEY, VS_*_ID…)
-    const kpd = await runWorkflow({ input_as_text: input, env: ctx.env });
+    // 🔴 NEMA više placeholdera: zovi agenta
+    const result = await runWorkflow({ input_as_text: input, env: ctx.env });
 
-    return new Response(JSON.stringify(kpd), {
+    return new Response(JSON.stringify(result), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
@@ -29,3 +27,4 @@ export const onRequestPost = async (ctx: any): Promise<Response> => {
     });
   }
 };
+
