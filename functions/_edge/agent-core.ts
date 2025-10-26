@@ -152,8 +152,8 @@ Provjeri da "KPD_6" postoji u KPD_2025_struktura.json.
 Ako ne postoji, vrati:
 "KPD_6": null, "Poruka": "Šifra nije pronađena u KPD 2025 bazi.", "alternativne": [ ... ] 
 Regex validacija:
-"NKD_4" → ^\d{2}\.\d{2}(\.\d)?$
-"KPD_6" → ^\d{2}\.\d{2}\.\d{2}$
+"NKD_4" → ^\\d{2}\\.\\d{2}(\\.\\d)?$
+"KPD_6" → ^\\d{2}\\.\\d{2}\\.\\d{2}$
 Vrati točno jedan JSON objekt (nikada više njih).
 U “strict” režimu svi parametri moraju biti prisutni (ako ih nema, koristi null).
 ⚙️ Format odgovora
@@ -259,6 +259,8 @@ function buildPayload(input_as_text: string, vectorIds: string[] | null) {
 
 /** ----------------------------- Main entry ----------------------------- */
 
+const FALLBACK_VECTOR_STORE_ID = "vs_68f0cfbb2d9081918800e3eb92d9d483";
+
 export async function classifyCore(input_as_text: string, env?: AgentEnv): Promise<KpdResponse> {
   const apiKey = env?.OPENAI_API_KEY;
   if (!apiKey) {
@@ -267,7 +269,7 @@ export async function classifyCore(input_as_text: string, env?: AgentEnv): Promi
     );
   }
 
-  const vectorIds = [env?.VS_NKD_ID, env?.VS_KPD_ID].filter(Boolean) as string[];
+  const vectorIds = [env?.VS_NKD_ID, env?.VS_KPD_ID, FALLBACK_VECTOR_STORE_ID].filter(Boolean) as string[];
 
   try {
     // 1) Pokušaj S file_search (ako postoje ID-evi)
