@@ -1,32 +1,24 @@
 import { fileSearchTool, Agent, AgentInputItem, Runner, withTrace } from "@openai/agents";
 import { z } from "zod";
 
-/* ===== Types ===== */
-export type KpdResponse = {
-  NKD_4: string | null;
-  NKD_naziv: string | null;
-  KPD_6: string | null;
-  Naziv_proizvoda: string | null;
-  Razlog_odabira: string | null;
-  Poruka: string | null;
-  alternativne: Array<{ KPD_6: string | null; Naziv: string; ["kratko_zašto"]?: string }>;
-};
 
-export type AgentEnv = {
-  OPENAI_API_KEY?: string;
-  VS_NKD_ID?: string;
-  VS_KPD_ID?: string;
-};
+const vsNkd = process.env.VS_NKD_ID;
+const vsKpd = process.env.VS_KPD_ID;
+const fallbackVS = "vs_68f0cfbb2d9081918800e3eb92d9d483";
 
-/* ===== Zod schema iz tvoje definicije ===== */
+const fileSearch = fileSearchTool(
+  [vsNkd, vsKpd, fallbackVS].filter(Boolean) as string[]
+);
+
 const AltSchema = z.object({
   KPD_6: z.string().regex(/^\d{2}\.\d{2}\.\d{2}$/),
   Naziv: z.string(),
   ["kratko_zašto"]: z.string(),
 }).strict();
 
-const KpdSchema = z.object({
+const KpdFrikNkdKpd2025KlasifikatorSchema = z.object({
   NKD_4: z.string().regex(/^\d{2}\.\d{2}(\.\d)?$/),
+  /** NOVO: precizan naziv NKD podrazreda iz NKD_2025 PDF-a */
   NKD_naziv: z.string().nullable(),
   KPD_6: z.string().regex(/^\d{2}\.\d{2}\.\d{2}$/).nullable(),
   Naziv_proizvoda: z.string().nullable(),
@@ -35,24 +27,9 @@ const KpdSchema = z.object({
   alternativne: z.array(AltSchema),
 }).strict();
 
-/* ===== Glavna funkcija – SAMO JEDNOM definirana ===== */
-export type WorkflowInput = { input_as_text: string; env?: AgentEnv };
-
-export async function runWorkflow({ input_as_text, env }: WorkflowInput): Promise<KpdResponse> {
-  // env: prvo iz argumenta (CF Pages će proslijediti ctx.env), inače iz process.env (lokalno)
-  const E = {
-    OPENAI_API_KEY: env?.OPENAI_API_KEY ?? process.env.OPENAI_API_KEY,
-    VS_NKD_ID: env?.VS_NKD_ID ?? process.env.VS_NKD_ID,
-    VS_KPD_ID: env?.VS_KPD_ID ?? process.env.VS_KPD_ID,
-  };
-
-  const fallbackVS = "vs_68f0cfbb2d9081918800e3eb92d9d483";
-  const vectorStoreIds = [E.VS_NKD_ID, E.VS_KPD_ID, fallbackVS].filter(Boolean) as string[];
-  const fileSearch = fileSearchTool(vectorStoreIds);
-
-  const agent = new Agent({
-    name: "KPD frik – NKD/KPD 2025 klasifikator",
-    instructions: `🧠 KPD frik v6 — službene upute (Production Mode)
+export const kpdFrikNkdKpd2025Klasifikator = new Agent({
+  name: "KPD frik – NKD/KPD 2025 klasifikator",
+  instructions: `🧠 KPD frik v6 — službene upute (Production Mode)
 🎯 Svrha
 Tvoj zadatak je klasifikacija djelatnosti, proizvoda i usluga u skladu s:
 NKD 2025 – Nacionalna klasifikacija djelatnosti Republike Hrvatske
@@ -127,34 +104,31 @@ fizički provjeriti šifre u dokumentima,
 vratiti točan JSON po shemi,
 osigurati da svako polje postoji (ako nema vrijednosti → null),
 i ne generirati nikakve dodatne podatke izvan strukture.`,
-    model: "gpt-5",
-    tools: [fileSearch],
-    outputType: KpdSchema,
-    modelSettings: { reasoning: { effort: "low", summary: "auto" }, store: true },
+  model: "gpt-5",
+  tools: [fileSearch],
+  outputType: KpdFrikNkdKpd2025KlasifikatorSchema,
+  modelSettings: { reasoning: { effort: "low", summary: "auto" }, store: true },
+});
+
+export type WorkflowInput = { input_as_text: string };
+
+export const runWorkflow = async (workflow: WorkflowInput) => {
+  return await withTrace("KPDinfo", async () => {
+    const conversationHistory: AgentInputItem[] = [
+      { role: "user", content: [{ type: "input_text", text: workflow.input_as_text }] }
+    ];
+
+    const runner = new Runner({
+  tracingDisabled: true,                 // <— ovo
+  traceMetadata: { __trace_source__: "agent-builder" } // (opcionalno) možeš ostaviti ili maknuti
+});
+
+    const res = await runner.run(kpdFrikNkdKpd2025Klasifikator, [...conversationHistory]);
+    if (!res.finalOutput) throw new Error("Agent result is undefined");
+
+    return {
+      output_text: JSON.stringify(res.finalOutput),
+      output_parsed: res.finalOutput
+    };
   });
-
-  const conversation: AgentInputItem[] = [
-    { role: "user", content: [{ type: "input_text", text: input_as_text }] }
-  ];
-
-  // Runner (tracing OFF)
-  const runner = new Runner({ tracingDisabled: true });
-
-  const result = await withTrace("KPDinfo", async () => {
-    return runner.run(agent, conversation);
-  });
-
-  if (!result.finalOutput) throw new Error("Agent result is undefined");
-  const parsed = KpdSchema.parse(result.finalOutput);
-
-  // Vrati točno KpdResponse (isti shape kao u App.tsx)
-  return {
-    NKD_4: parsed.NKD_4,
-    NKD_naziv: parsed.NKD_naziv,
-    KPD_6: parsed.KPD_6,
-    Naziv_proizvoda: parsed.Naziv_proizvoda,
-    Razlog_odabira: parsed.Razlog_odabira,
-    Poruka: parsed.Poruka,
-    alternativne: parsed.alternativne,
-  };
-}
+};
