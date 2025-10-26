@@ -257,31 +257,35 @@ function getVectorStoreIds(env?: AgentEnv): string[] {
 }
 
 /** Payload za Responses: gpt-5 + prisilni file_search + attachments */
-function buildPayload(input_as_text: string, vectorIds: string[]) {
+function buildPayload(input_as_text: string) {
   return {
     model: "gpt-5",
     input: [
       { role: "system", content: [{ type: "input_text", text: SYSTEM_PROMPT }] },
-      { role: "user", content: [{ type: "input_text", text: input_as_text }] },
+      { role: "user",   content: [{ type: "input_text", text: input_as_text }] },
     ],
     text: {
       format: { type: "json_schema", name: "KpdResponse", schema: JSON_SCHEMA, strict: true },
     },
     reasoning: { effort: "low" },
 
-    // deklariraj alat
-    tools: [{ type: "file_search" }],
+    // ✅ jedini podržani način u tvom snapshotu
+    tools: [
+      {
+        type: "file_search",
+        vector_store_ids: ["vs_68ba8cc0546c819187999473d98292a4"],
+        max_num_results: 8,
+      },
+    ],
 
-    // prisili korištenje alata
-    tool_choice: { type: "file_search" },
+    // ✅ ispravan format za forsiranje alata u Responses
+    tool_choice: { type: "tool", name: "file_search" },
 
-    // veži VS-ove (ovaj pristup je pouzdan na akt. snapshotu)
-    attachments: vectorIds.map((id) => ({ vector_store_id: id })),
-
-    // debug: vrati rezultate pretrage u izlazu
+    // (ok za debug ako je podržano)
     include: ["file_search_call.results"],
   };
 }
+
 
 /** ------------------------------------------------------------------
  *                            Public API
