@@ -273,13 +273,12 @@ function buildPayload(input_as_text: string) {
     tools: [
       {
         type: "file_search",
-        vector_store_ids: ["vs_68ba8cc0546c819187999473d98292a4"],
-        max_num_results: 8,
+        vector_store_ids: ["vs_68ba8cc0546c819187999473d98292a4"],        
       },
     ],
 
     // ✅ ispravan format za forsiranje alata u Responses
-    tool_choice: { type: "tool", name: "file_search" },
+    // tool_choice: { type: "tool", name: "file_search" },
 
     // (ok za debug ako je podržano)
     include: ["file_search_call.results"],
@@ -307,7 +306,7 @@ export async function classifyCore(input_as_text: string, env?: AgentEnv): Promi
   // (opcionalno) self-test da VS postoji i da je vidljiv u istom Projectu
   await Promise.all(vectorIds.map((id) => assertVectorStoreVisible(apiKey, project, org, id)));
 
-  const data = await callOpenAI(buildPayload(input_as_text, vectorIds), apiKey, project, org);
+  const data = await callOpenAI(buildPayload(input_as_text), apiKey, project, org);
 
   // logovi za dijagnostiku
   try {
