@@ -1,3 +1,4 @@
+// functions/api/kpdinfo/classify.ts
 import { classifyCore } from "../../_edge/agent-core";
 
 export const onRequestPost = async (ctx: any): Promise<Response> => {
@@ -18,7 +19,8 @@ export const onRequestPost = async (ctx: any): Promise<Response> => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: e?.message ?? "Unexpected error" }), {
+    const msg = e?.message ?? "Unexpected error";
+    return new Response(JSON.stringify({ error: msg }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
