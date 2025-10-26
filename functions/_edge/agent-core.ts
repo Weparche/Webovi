@@ -203,25 +203,30 @@ const JSON_SCHEMA = {
 };
 
 function extractParsed(data: any): any | null {
-  // 1) Ako Responses API vrati globalni output_parsed — najbolje to
+  // 1) Najbolje: globalni output_parsed
   if (data?.output_parsed) return data.output_parsed;
 
-  // 2) Prođi kroz sve stavke u output
+  // 2) Prođi sve output stavke
   const arr = Array.isArray(data?.output) ? data.output : [];
   for (const item of arr) {
     if (item?.type === "message") {
-      // a) Ako je model već parsirao prema shemi
+      // a) Već parsirano prema shemi
       if (item.parsed) return item.parsed;
 
       const content = Array.isArray(item.content) ? item.content : [];
-      // b) Ako je došao JSON kao objekt
-      const jsonChunk = content.find((c: any) => c?.type === "output_json" && c?.json);
-      if (jsonChunk?.json && typeof jsonChunk.json === "object") return jsonChunk.json;
 
-      // c) Ako je došao tekst → probaj parse
-      const textChunk = content.find((c: any) => c?.type === "output_text" && typeof c?.text === "string");
-      if (textChunk?.text) {
-        const t = String(textChunk.text).trim();
+      // b) JSON chunk (novi Responses ponekad koristi type: "json")
+      const jsonChunk =
+        content.find((c: any) => c?.type === "output_json" && c?.json)?.json ??
+        content.find((c: any) => c?.type === "json" && c?.json)?.json;
+      if (jsonChunk && typeof jsonChunk === "object") return jsonChunk;
+
+      // c) Tekst – probaj parse; podrži i "output_text" i "text"
+      const textChunk =
+        content.find((c: any) => c?.type === "output_text" && typeof c?.text === "string")?.text ??
+        content.find((c: any) => c?.type === "text" && typeof c?.text === "string")?.text;
+      if (textChunk) {
+        const t = String(textChunk).trim();
         if (t.startsWith("{") || t.startsWith("[")) {
           try { return JSON.parse(t); } catch {}
         }
@@ -229,12 +234,17 @@ function extractParsed(data: any): any | null {
     }
   }
 
-  // 3) Fallback: ponekad sjedne i u data.message.content
+  // 3) Fallback – ponekad sjedne u data.message.content
   const mc = data?.message?.content;
   if (Array.isArray(mc)) {
-    const j = mc.find((c: any) => c?.type === "output_json" && c?.json)?.json;
+    const j =
+      mc.find((c: any) => c?.type === "output_json" && c?.json)?.json ??
+      mc.find((c: any) => c?.type === "json" && c?.json)?.json;
     if (j) return j;
-    const t = mc.find((c: any) => c?.type === "output_text" && typeof c?.text === "string")?.text;
+
+    const t =
+      mc.find((c: any) => c?.type === "output_text" && typeof c?.text === "string")?.text ??
+      mc.find((c: any) => c?.type === "text" && typeof c?.text === "string")?.text;
     if (t) {
       const s = String(t).trim();
       if (s.startsWith("{") || s.startsWith("[")) {
@@ -247,16 +257,16 @@ function extractParsed(data: any): any | null {
 }
 
 
+
 // —————————— payload ——————————
 
 function buildPayload(input_as_text: string, vectorIds: string[] | null) {
   return {
     model: "gpt-5",
-    input: [
-      { role: "system", content: [{ type: "input_text", text: SYSTEM_PROMPT }] },
-      { role: "user",   content: [{ type: "input_text", text: input_as_text }] },
+    messages: [
+      { role: "system", content: [{ type: "text", text: SYSTEM_PROMPT }] },
+      { role: "user",   content: [{ type: "text", text: input_as_text   }] },
     ],
-    // Alati samo ako imaš vector store ID-jeve
     tools: vectorIds && vectorIds.length ? [{ type: "file_search" }] : undefined,
     tool_resources:
       vectorIds && vectorIds.length ? { file_search: { vector_store_ids: vectorIds } } : undefined,
@@ -270,6 +280,7 @@ function buildPayload(input_as_text: string, vectorIds: string[] | null) {
     },
   };
 }
+
 
 
 // —————————— glavni poziv ——————————
