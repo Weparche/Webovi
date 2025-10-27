@@ -431,25 +431,30 @@ export default function App() {
           <div className="mt-6 grid gap-6 md:grid-cols-2">
             {/* KPD */}
             <Card
-  className={`border-2 ${data.KPD_6
+  className={`border ${data.KPD_6
     ? "border-green-600 dark:border-green-500"
     : "border-rose-600 dark:border-rose-500"}`}
 >
-  <CardHeader className="pb-3">
-    <div className="flex items-center gap-2">
-      <Badge
-        className={`border ${data.KPD_6
-          ? "border-green-600 text-green-700 dark:text-green-400"
-          : "border-rose-600 text-rose-700 dark:text-rose-400"}`}
-      >
-        {data.KPD_6 ? "KPD šifra — pronađeno" : "KPD šifra — nije pronađeno"}
-      </Badge>
-      <CardTitle>KPD proizvod/usluga</CardTitle>
-    </div>
-  </CardHeader>
-  {/* ... */}
-</Card>
-
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Badge className={`border ${data.KPD_6 ? "border-green-600 text-green-700 dark:text-green-400" : "border-rose-600 text-rose-700 dark:text-rose-400"}`}>
+                    {data.KPD_6 ? "KPD šifra — pronađeno" : "KPD šifra — nije pronađeno"}
+                  </Badge>
+                  <CardTitle>KPD proizvod/usluga</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold tracking-tight">{data.KPD_6 ?? "∅"}</div>
+                <p className="mt-2 text-base sm:text-lg text-slate-700 dark:text-slate-200">
+                  {data.Naziv_proizvoda ?? "—"}
+                </p>
+                {(!data.KPD_6 || data.Poruka) && (
+                  <p className="mt-2 text-sm text-rose-700 dark:text-rose-400">
+                    {data.Poruka || "Šifra nije pronađena u KPD 2025 bazi."}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
             {/* NKD */}
             <Card>
               <CardHeader className="pb-3">
