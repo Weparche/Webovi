@@ -52,6 +52,7 @@ type HistItem = {
   kpd_naziv: string | null;
   razlog: string | null;
   ts: number;
+  alternativne?: AltItem[]; // ← DODANO (opcionalno)
 };
 
 export default function App() {
@@ -530,7 +531,7 @@ export default function App() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">
                         <CardTitle className="text-base leading-snug">
-                          {h.q}
+                          Upit: {h.q} 
                         </CardTitle>
                         <div className="text-xs text-slate-500">
                           {new Date(h.ts).toLocaleString()}
@@ -548,35 +549,68 @@ export default function App() {
                     </div>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="grid gap-3 sm:grid-cols-2">                      
-                      <div className="rounded-lg border-2 p-3 border-green-500 dark:border-green-600 bg-white/80 dark:bg-slate-900/70 backdrop-blur">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge className={`border ${h.kpd ? "border-green-600 text-green-700 dark:text-green-400" : "border-rose-600 text-rose-700 dark:text-rose-400"}`}>
-                            {h.kpd ? "KPD — pronađeno" : "KPD — nije pronađeno"}
-                          </Badge>
-                          <span className="text-sm font-semibold">{h.kpd ?? "∅"}</span>
-                        </div>
-                        <div className="text-sm text-slate-700 dark:text-slate-200">
-                          {h.kpd_naziv ?? "—"}
-                        </div>
-                      </div>
-                      <div className="rounded-lg border p-3">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge className="border border-green-600 text-green-700 dark:text-green-400">NKD</Badge>
-                          <span className="text-sm font-semibold">{h.nkd ?? "—"}</span>
-                        </div>
-                        <div className="text-sm text-slate-700 dark:text-slate-200">
-                          {h.nkd_naziv ?? "—"}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-3">
-                      <div className="text-xs uppercase text-slate-500 mb-1">Obrazloženje</div>
-                      <p className="text-sm text-slate-700 dark:text-slate-300">
-                        {h.razlog ?? "—"}
-                      </p>
-                    </div>
-                  </CardContent>
+  <div className="grid gap-3 sm:grid-cols-2">
+    {/* KPD kartica */}
+    <div className="rounded-lg border-2 p-3 border-green-500 dark:border-green-600 bg-white/80 dark:bg-slate-900/70 backdrop-blur">
+      <div className="flex items-center gap-2 mb-1">
+        <Badge className={`border ${h.kpd ? "border-green-600 text-green-700 dark:text-green-400" : "border-rose-600 text-rose-700 dark:text-rose-400"}`}>
+          {h.kpd ? "KPD — pronađeno" : "KPD — nije pronađeno"}
+        </Badge>
+        <span className="text-sm font-semibold">{h.kpd ?? "∅"}</span>
+      </div>
+      <div className="text-sm text-slate-700 dark:text-slate-200">
+        {h.kpd_naziv ?? "—"}
+      </div>
+    </div>
+
+    {/* NKD kartica */}
+    <div className="rounded-lg border p-3">
+      <div className="flex items-center gap-2 mb-1">
+        <Badge className="border border-green-600 text-green-700 dark:text-green-400">NKD</Badge>
+        <span className="text-sm font-semibold">{h.nkd ?? "—"}</span>
+      </div>
+      <div className="text-sm text-slate-700 dark:text-slate-200">
+        {h.nkd_naziv ?? "—"}
+      </div>
+    </div>
+  </div>
+
+  {/* Obrazloženje */}
+  <div className="mt-3">
+    <div className="text-xs uppercase text-slate-500 mb-1">Obrazloženje</div>
+    <p className="text-sm text-slate-700 dark:text-slate-300">
+      {h.razlog ?? "—"}
+    </p>
+  </div>
+
+  {/* Alternativne šifre (KPD) */}
+  {Array.isArray(h.alternativne) && h.alternativne.length > 0 && (
+    <div className="mt-4">
+      <div className="text-xs uppercase text-slate-500 mb-1">Alternativne šifre (KPD)</div>
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {h.alternativne.map((alt, i) => (
+          <div
+            key={i}
+            className="rounded-lg border p-3 bg-white/70 dark:bg-slate-900/60 backdrop-blur"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <Badge className="border border-slate-300 dark:border-slate-700">ALT</Badge>
+              <span className="text-sm font-semibold">{alt.KPD_6 ?? "∅"}</span>
+            </div>
+            <div className="text-sm text-slate-700 dark:text-slate-200">
+              {alt.Naziv ?? "—"}
+            </div>
+            {alt["kratko_zašto"] && (
+              <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                {alt["kratko_zašto"]}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )}
+</CardContent>
                 </Card>
               ))}
             </div>
