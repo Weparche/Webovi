@@ -6,15 +6,7 @@ export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
 }
 
 export function CardKPD({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn(
-        "rounded-2xl border border-green-600 dark:border-green-500 bg-white/80 dark:bg-slate-900/70 backdrop-blur",
-        className
-      )}
-      {...props}
-    />
-  );
+  return <div className={cn("rounded-2xl border border-green-600 dark:border-green-500 bg-white/80 dark:bg-slate-900/70 backdrop-blur", className)} {...props} />
 }
 
 export function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
