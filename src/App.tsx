@@ -429,24 +429,8 @@ export default function App() {
 
         {data && (
           <div className="mt-6 grid gap-6 md:grid-cols-2">
-            {/* NKD */}
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <Badge className="border border-green-600 text-green-700 dark:text-green-400">NKD šifra</Badge>
-                  <CardTitle>NKD podrazred</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold tracking-tight">{data.NKD_4 || "—"}</div>
-                <div className="mt-2 text-base sm:text-lg text-slate-700 dark:text-slate-200">
-                  {data.NKD_naziv ?? "Naziv NKD podrazreda nije dostupan."}
-                </div>
-              </CardContent>
-            </Card>
-
             {/* KPD */}
-            <Card>
+            <Card className="border-green-600">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <Badge className={`border ${data.KPD_6 ? "border-green-600 text-green-700 dark:text-green-400" : "border-rose-600 text-rose-700 dark:text-rose-400"}`}>
@@ -467,6 +451,23 @@ export default function App() {
                 )}
               </CardContent>
             </Card>
+            {/* NKD */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <Badge className="border border-green-600 text-green-700 dark:text-green-400">NKD šifra</Badge>
+                  <CardTitle>NKD podrazred</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold tracking-tight">{data.NKD_4 || "—"}</div>
+                <div className="mt-2 text-base sm:text-lg text-slate-700 dark:text-slate-200">
+                  {data.NKD_naziv ?? "Naziv NKD podrazreda nije dostupan."}
+                </div>
+              </CardContent>
+            </Card>
+
+            
           </div>
         )}
 
