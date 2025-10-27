@@ -434,7 +434,7 @@ export default function App() {
             <CardKPD>
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <Badge className={`border-2 ${data.KPD_6 ? "border-green-500 text-green-700 dark:text-green-400" : "border-rose-600 text-rose-700 dark:text-rose-400"}`}>
+                  <Badge className={`border-2 ${data.KPD_6 ? "border-green-700 text-green-700 dark:text-green-400" : "border-rose-600 text-rose-700 dark:text-rose-400"}`}>
                     {data.KPD_6 ? "KPD šifra — pronađeno" : "KPD šifra — nije pronađeno"}
                   </Badge>
                   <CardTitle>KPD proizvod/usluga</CardTitle>
