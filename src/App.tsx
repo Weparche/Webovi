@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card,CardKPD, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Textarea } from "@/components/ui/Textarea";
 import { Loader2, Moon, Search, Sparkles, SunMedium, Trash2 } from "lucide-react";
@@ -430,11 +430,7 @@ export default function App() {
         {data && (
           <div className="mt-6 grid gap-6 md:grid-cols-2">
             {/* KPD */}
-            <Card
-  className={`border ${data.KPD_6
-    ? "border-green-600 dark:border-green-500"
-    : "border-rose-600 dark:border-rose-500"}`}
->
+            <CardKPD>
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
                   <Badge className={`border ${data.KPD_6 ? "border-green-600 text-green-700 dark:text-green-400" : "border-rose-600 text-rose-700 dark:text-rose-400"}`}>
@@ -454,7 +450,7 @@ export default function App() {
                   </p>
                 )}
               </CardContent>
-            </Card>
+            </CardKPD>
             {/* NKD */}
             <Card>
               <CardHeader className="pb-3">
