@@ -239,10 +239,10 @@ export default function App() {
   }> = [
     {
       label: "Prodaja stolica u salonu",
-      NKD_4: "47.55.0",
-      NKD_naziv: "trgovina na malo namještajem",
       KPD_6: "47.55.01",
       KPD_naziv: "Usluge trgovine na malo namještajem",
+      NKD_4: "47.55.0",
+      NKD_naziv: "trgovina na malo namještajem",      
       Razlog_odabira:
         "Opis „prodaja stolice u salonu” upućuje na specijaliziranu trgovinu na malo namještajem; NKD 47.55.0 izričito uključuje trgovinu na malo namještajem (uključujući madrace i podnice) te ostalom opremom za kućanstvo . U KPD-u, unutar istog prefiksa, šifra 47.55.01 je „Usluge trgovine na malo namještajem”, što najuže odgovara prodaji stolica u salonu.",
       alternativne: [
@@ -253,10 +253,10 @@ export default function App() {
     },
     {
       label: "Izrada web stranice",
-      NKD_4: "62.10.9",
-      NKD_naziv: "Ostalo računalno programiranje",
       KPD_6: "62.10.11",
       KPD_naziv: "Usluge IT dizajna i razvoja aplikacija",
+      NKD_4: "62.10.9",
+      NKD_naziv: "Ostalo računalno programiranje",      
       Razlog_odabira:
         "Izrada web stranice razvrstava se u NKD 62.10.9 jer ovaj podrazred izričito uključuje izradu i održavanje softvera te baza podataka i internetskih stranica . Također, NKD 74.12 (grafički dizajn) izričito upućuje da je kreiranje mrežnih stranica u kombinaciji s programiranjem djelatnost iz 62.10.9 . U KPD 2025 odgovarajuća usluga je 62.10.11 – Usluge IT dizajna i razvoja aplikacija.",
       alternativne: [
@@ -266,10 +266,10 @@ export default function App() {
     },
     {
       label: "Prodaja i ugradnja klima uređaja",
-      NKD_4: "43.22.0",
-      NKD_naziv: "instalacijski radovi vodovoda, grijanja i klimatizacije",
       KPD_6: "43.22.12",
-      KPD_naziv: "Ugradnja klima uređaja",
+      KPD_naziv: "instalacijski radovi vodovoda, grijanja i klimatizacije",
+      NKD_4: "43.22.0",
+      NKD_naziv: "Ugradnja klima uređaja",      
       Razlog_odabira:
         "Ugradnja klima uređaja spada u NKD 43.22.0 jer ovaj podrazred obuhvaća postavljanje, održavanje i popravak opreme i vodova za ventilaciju i klimatizaciju, uključujući sustave grijanja i klimatizacije . U KPD 2025, šifra 43.22.12 točno označava radove na uvođenju instalacija za grijanje, ventilaciju i klimatizaciju, što odgovara usluzi ugradnje klima uređaja .",
       alternativne: [
@@ -599,17 +599,17 @@ export default function App() {
                 </CardHeader>
                 <CardContent className="pt-0 space-y-3">
                   <div>
-                    <div className="text-xs uppercase text-slate-500">NKD</div>
-                    <div className="text-sm font-semibold">{ex.NKD_4}</div>
-                    <div className="text-xs text-slate-600 dark:text-slate-300">{ex.NKD_naziv}</div>
-                  </div>
-                  <div>
                     <div className="text-xs uppercase text-slate-500">KPD</div>
                     <div className="text-sm font-semibold">{ex.KPD_6 ?? "∅"}</div>
                     <div className="text-xs text-slate-600 dark:text-slate-300">
                       {ex.KPD_naziv ?? "—"}
                     </div>
                   </div>
+                  <div>
+                    <div className="text-xs uppercase text-slate-500">NKD</div>
+                    <div className="text-sm font-semibold">{ex.NKD_4}</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-300">{ex.NKD_naziv}</div>
+                  </div>                  
                   <div>
                     <div className="text-xs uppercase text-slate-500">Obrazloženje</div>
                     <p className="text-xs text-slate-700 dark:text-slate-300">{ex.Razlog_odabira}</p>
