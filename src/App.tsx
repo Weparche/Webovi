@@ -433,7 +433,7 @@ export default function App() {
             <CardKPD>
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <Badge className={`border ${data.KPD_6 ? "border-green-600 text-green-700 dark:text-green-400" : "border-rose-600 text-rose-700 dark:text-rose-400"}`}>
+                  <Badge className={`border-2 ${data.KPD_6 ? "border-green-500 text-green-700 dark:text-green-400" : "border-rose-600 text-rose-700 dark:text-rose-400"}`}>
                     {data.KPD_6 ? "KPD šifra — pronađeno" : "KPD šifra — nije pronađeno"}
                   </Badge>
                   <CardTitle>KPD proizvod/usluga</CardTitle>
@@ -548,17 +548,8 @@ export default function App() {
                     </div>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-lg border p-3">
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge className="border border-green-600 text-green-700 dark:text-green-400">NKD</Badge>
-                          <span className="text-sm font-semibold">{h.nkd ?? "—"}</span>
-                        </div>
-                        <div className="text-sm text-slate-700 dark:text-slate-200">
-                          {h.nkd_naziv ?? "—"}
-                        </div>
-                      </div>
-                      <div className="rounded-lg border p-3">
+                    <div className="grid gap-3 sm:grid-cols-2">                      
+                      <div className="rounded-lg border-2 p-3 border-green-500 dark:border-green-600 bg-white/80 dark:bg-slate-900/70 backdrop-blur">
                         <div className="flex items-center gap-2 mb-1">
                           <Badge className={`border ${h.kpd ? "border-green-600 text-green-700 dark:text-green-400" : "border-rose-600 text-rose-700 dark:text-rose-400"}`}>
                             {h.kpd ? "KPD — pronađeno" : "KPD — nije pronađeno"}
@@ -567,6 +558,15 @@ export default function App() {
                         </div>
                         <div className="text-sm text-slate-700 dark:text-slate-200">
                           {h.kpd_naziv ?? "—"}
+                        </div>
+                      </div>
+                      <div className="rounded-lg border p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge className="border border-green-600 text-green-700 dark:text-green-400">NKD</Badge>
+                          <span className="text-sm font-semibold">{h.nkd ?? "—"}</span>
+                        </div>
+                        <div className="text-sm text-slate-700 dark:text-slate-200">
+                          {h.nkd_naziv ?? "—"}
                         </div>
                       </div>
                     </div>
