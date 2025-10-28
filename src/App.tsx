@@ -584,7 +584,7 @@ export default function App() {
   </div>
 
   {/* Alternativne šifre (KPD) */}
-  {Array.isArray(h.alternativne) && h.alternativne.length > 0 && (
+  {Array.isArray(h.alternativne) && h.alternativne?.length > 0 && (
     <div className="mt-4">
       <div className="text-xs uppercase text-slate-500 mb-1">Alternativne šifre (KPD)</div>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
