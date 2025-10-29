@@ -24,7 +24,7 @@ export default function ONama() {
         {/* HERO s pozadinskom ilustracijom */}
         <section className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
           <img
-            src="/miai/miai-hero.png"            // (neurons + skyline, “Mi smo AI…”)
+            src="../miai/miai-hero.png"            // (neurons + skyline, “Mi smo AI…”)
             alt="MIAI — tim za pametnu automatizaciju"
             loading="eager"
             className="w-full h-70 sm:h-86 object-cover object-center opacity-95 dark:opacity-90"
