@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import miai from "../assets/logo.png";
+import miai from "../assets/miai-hero.png";
 
 export default function ONama() {
   const [dark, setDark] = useState(false);
