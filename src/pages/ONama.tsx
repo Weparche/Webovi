@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import miai from "../miai/logo.png";
 
 export default function ONama() {
   const [dark, setDark] = useState(false);
@@ -24,7 +25,7 @@ export default function ONama() {
         {/* HERO s pozadinskom ilustracijom */}
         <section className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
           <img
-            src="../miai/miai-hero.png"            // (neurons + skyline, “Mi smo AI…”)
+            src={miai}            // (neurons + skyline, “Mi smo AI…”)
             alt="MIAI — tim za pametnu automatizaciju"
             loading="eager"
             className="w-full h-70 sm:h-86 object-cover object-center opacity-95 dark:opacity-90"
