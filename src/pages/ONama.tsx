@@ -6,7 +6,7 @@ import miai from "../assets/miai-hero.png";
 import miai1 from "../assets/miai-headline.png";
 import miai2 from "../assets/miai-ikone-red.png";
 import miai3 from "../assets/miai-roi.png";
-import miai4 from "../assets/miai-proces-pilot-mjerenje-sirenje.png";
+import miai4 from "../assets/miai-ai-integrations.png";
 export default function ONama() {
   const [dark, setDark] = useState(false);
 
@@ -19,6 +19,56 @@ export default function ONama() {
     document.documentElement.classList.toggle("dark", dark);
     localStorage.setItem("kpd_theme", dark ? "dark" : "light");
   }, [dark]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("kpd_theme");
+    const pref = saved ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    setDark(pref === "dark");
+  }, []);
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", dark);
+    localStorage.setItem("kpd_theme", dark ? "dark" : "light");
+  }, [dark]);
+
+  // ——— Kontakt (mailto) ———
+  function handleContactSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+
+    // honeypot (ako je popunjen, prekid)
+    if ((fd.get("website") as string)?.trim()) return;
+
+    const name = (fd.get("name") as string)?.trim() || "Nepoznato";
+    const email = (fd.get("email") as string)?.trim() || "Nije navedeno";
+    const company = (fd.get("company") as string)?.trim();
+    const message = (fd.get("message") as string)?.trim() || "";
+    const consent = fd.get("consent") === "on";
+
+    // osnovna validacija
+    if (!message) {
+      alert("Molimo upišite poruku.");
+      return;
+    }
+
+    if (!consent) {
+      alert("Molimo označite privolu za kontakt.");
+      return;
+    }
+
+    const subject = `MIAI — upit (${name}${company ? ", " + company : ""})`;
+    const bodyLines = [
+      `Ime i prezime: ${name}`,
+      `E-mail: ${email}`,
+      company ? `Tvrtka: ${company}` : null,
+      "",
+      "Poruka:",
+      message,
+    ].filter(Boolean);
+
+    const mailto = `mailto:info@miai.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyLines.join("\n"))}`;
+    window.location.href = mailto;
+  }
+
 
   return (
     <div className="min-h-screen">
@@ -44,7 +94,7 @@ export default function ONama() {
 
         {/* Naslov odmah nakon hero-a */}
         <header className="text-center">
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Više o nama</h1>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">O nama</h1>
         </header>
 
         {/* HEADLINE slika preko cijele širine + tekst ispod slike */}
@@ -55,15 +105,15 @@ export default function ONama() {
             loading="lazy"
             className="w-full rounded-2xl border border-slate-200 dark:border-slate-800"
           />
-          <p className="text-lg leading-relaxed text-slate-800 dark:text-slate-200">
+          {/* <p className="text-lg leading-relaxed text-slate-800 dark:text-slate-200">
             Uz najnovije mogućnosti umjetne inteligencije (AI), ovaj učinak postaje još
             izraženiji: spajamo domensko znanje, podatke i alate kako bismo vaše procese
             učinili <strong>bržima, sigurnijima i isplativijima</strong>.
-          </p>
+          </p> */}
         </section>
 
         {/* Što dobivate / Zašto MIAI */}
-        <section className="grid gap-6 md:grid-cols-2">
+        {/* <section className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle>Što dobivate</CardTitle>
@@ -91,14 +141,14 @@ export default function ONama() {
               </ul>
             </CardContent>
           </Card>
-        </section>
+        </section> */}
 
         {/* PLAN PROCESA */}
         <section className="space-y-4">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Plan procesa</h2>
+          <h2 className="text-center text-2xl sm:text-3xl font-bold tracking-tight">Plan procesa</h2>
 
           {/* Proces (smanjeno ~30%) + ROI u istoj ravnini */}
-          <div className="grid gap-6 md:grid-cols-3 md:items-center">
+          <div className="grid gap-6 md:grid-cols-3 md:items-center space-y-6">
             {/* Lijevo: procesna slika umanjena na 70% širine kolone, centrirana */}
             <div className="md:col-span-2">
               <div className="w-full">
@@ -106,7 +156,7 @@ export default function ONama() {
                   src={miai2}
                   alt="Proces suradnje: pilot, mjerenje, širenje"
                   loading="lazy"
-                  className="w-full sm:w-[70%] mx-auto rounded-xl border border-slate-200 dark:border-slate-800"
+                  className="w-full sm:w-[93%] mx-auto rounded-xl border border-slate-200 dark:border-slate-800"
                 />
               </div>
             </div>
@@ -148,6 +198,80 @@ export default function ONama() {
                 Povjerite nam svoje izazove; pretvaramo ih u mjerljive rezultate i
                 dižemo vaše poslovanje na <strong>novu razinu</strong>.
               </p>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* ——— Kontakt forma (mailto: info@miai.com) ——— */}
+        <section className="space-y-6">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-center">Kontaktirajte nas</h2>
+          <Card>
+            <CardContent className="pt-6">
+              <form onSubmit={handleContactSubmit} className="grid gap-4">
+                {/* honeypot */}
+                <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" />
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-1.5">
+                    <label htmlFor="name" className="text-sm font-medium">Ime i prezime</label>
+                    <input
+                      id="name"
+                      name="name"
+                      required
+                      className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Vaše ime"
+                    />
+                  </div>
+
+                  <div className="grid gap-1.5">
+                    <label htmlFor="email" className="text-sm font-medium">E-mail</label>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      required
+                      className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="ime@domena.hr"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-1.5">
+                  <label htmlFor="company" className="text-sm font-medium">Tvrtka (neobavezno)</label>
+                  <input
+                    id="company"
+                    name="company"
+                    className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Naziv tvrtke"
+                  />
+                </div>
+
+                <div className="grid gap-1.5">
+                  <label htmlFor="message" className="text-sm font-medium">Poruka</label>
+                  <textarea
+                    id="message"
+                    name="message"
+                    required
+                    rows={6}
+                    className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Kako vam možemo pomoći?"
+                  />
+                </div>
+
+                <label className="inline-flex items-start gap-3 text-sm">
+                  <input type="checkbox" name="consent" className="mt-1" />
+                  <span>
+                    Slažem se da me MIAI kontaktira povodom mog upita na e-mail adresu koju sam naveo/la.
+                  </span>
+                </label>
+
+                <div className="flex items-center gap-3">
+                  <Button type="submit">Pošalji upit</Button>
+                  <a href="mailto:weparche@gmail.com" className="text-sm text-blue-700 dark:text-blue-400 underline">
+                    ili pošalji izravno na info@miai.com
+                  </a>
+                </div>
+              </form>
             </CardContent>
           </Card>
         </section>
