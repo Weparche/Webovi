@@ -3,6 +3,8 @@ import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import miai from "../assets/miai-hero.png";
+import miai1 from "../assets/miai-headline.png";
+import miai2 from "../assets/miai-ikone-red.png";
 
 export default function ONama() {
   const [dark, setDark] = useState(false);
@@ -47,7 +49,7 @@ export default function ONama() {
         {/* HEADLINE slika preko cijele širine + tekst ispod slike */}
         <section className="space-y-4">
           <img
-            src="/miai/miai-headline.png"
+            src={miai1}
             alt="AI kompetencije i učinci — headline"
             loading="lazy"
             className="w-full rounded-2xl border border-slate-200 dark:border-slate-800"
@@ -100,7 +102,7 @@ export default function ONama() {
             <div className="md:col-span-2">
               <div className="w-full">
                 <img
-                  src="/miai/miai-proces-pilot-mjerenje-sirenje.png"
+                  src={miai2}
                   alt="Proces suradnje: pilot, mjerenje, širenje"
                   loading="lazy"
                   className="w-full sm:w-[70%] mx-auto rounded-xl border border-slate-200 dark:border-slate-800"
