@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/Button";
 import miai from "../assets/miai-hero.png";
 import miai1 from "../assets/miai-headline.png";
 import miai2 from "../assets/miai-ikone-red.png";
-
+import miai3 from "../assets/miai-roi.png";
+import miai4 from "../assets/miai-proces-pilot-mjerenje-sirenje.png";
 export default function ONama() {
   const [dark, setDark] = useState(false);
 
@@ -117,7 +118,7 @@ export default function ONama() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <img
-                  src="/miai/miai-roi.png"
+                  src={miai3}
                   alt="Rast ROI-a kroz automatizaciju"
                   loading="lazy"
                   className="w-full max-w-xs mx-auto"
@@ -134,7 +135,7 @@ export default function ONama() {
         <section className="grid gap-8 md:grid-cols-5 items-center">
           <div className="md:col-span-2">
             <img
-              src="/miai/miai-ai-integrations.png"
+              src={miai4}
               alt="AI agenti povezani na e-mail, tablice, ERP i CRM"
               loading="lazy"
               className="w-full rounded-xl border border-slate-200 dark:border-slate-800"
