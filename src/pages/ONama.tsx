@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import miai from "../assets/miai-hero.png";
-import miai1 from "../assets/miai-headline.png";
-import miai2 from "../assets/miai-ikone-red.png";
-import miai3 from "../assets/miai-roi.png";
-import miai4 from "../assets/miai-ai-integrations.png";
+import miai from "../assets/miai-hero.webp";
+import miai1 from "../assets/miai-headline.webp";
+import miai2 from "../assets/miai-ikone-red.webp";
+import miai3 from "../assets/miai-roi.webp";
+import miai4 from "../assets/miai-ai-integrations.webp";
 export default function ONama() {
   const [dark, setDark] = useState(false);
 
