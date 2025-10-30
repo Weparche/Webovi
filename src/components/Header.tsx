@@ -119,16 +119,16 @@ export default function Header({ dark, setDark }: HeaderProps) {
             <Home className="h-5 w-5" />
             <span>Početna</span>
           </a>
-          <a href="/#primjeri" className={mobileLink} onClick={() => setOpen(false)}>
-            <Sparkles className="h-5 w-5" />
+          <a href="/primjeri" className={mobileLink} onClick={() => setOpen(false)}>
+            <LayoutGrid className="h-5 w-5" />
             <span>Primjeri</span>
           </a>
           <a href="/o-nama" className={mobileLink} onClick={() => setOpen(false)}>
-            <Sparkles className="h-5 w-5" />
+            <Users2 className="h-5 w-5" />
             <span>O nama</span>
           </a>
           <a href="/kontakt" className={mobileLink} onClick={() => setOpen(false)}>
-            <Sparkles className="h-5 w-5" />
+            <Mail className="h-5 w-5" />
             <span>Kontakt</span>
           </a>
         </nav>
