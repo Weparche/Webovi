@@ -65,7 +65,7 @@ export default function ONama() {
       message,
     ].filter(Boolean);
 
-    const mailto = `mailto:info@miai.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyLines.join("\n"))}`;
+    const mailto = `mailto:info@kpdinfo.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyLines.join("\n"))}`;
     window.location.href = mailto;
   }
 
@@ -202,7 +202,7 @@ export default function ONama() {
           </Card>
         </section>
 
-        {/* ——— Kontakt forma (mailto: info@miai.com) ——— */}
+        {/* ——— Kontakt forma (mailto: info@kpdinfo.com) ——— */}
         <section id="kontakt" className="scroll-mt-24 space-y-6">
   <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-center">Kontaktirajte nas</h2>
   <Card>
@@ -240,8 +240,8 @@ export default function ONama() {
 
         <div className="flex items-center gap-3">
           <Button type="submit">Pošalji upit</Button>
-          <a href="mailto:info@miai.com" className="text-sm text-blue-700 dark:text-blue-400 underline">
-            ili pošalji izravno na info@miai.com
+          <a href="mailto:info@kpdinfo.com" className="text-sm text-blue-700 dark:text-blue-400 underline">
+            ili pošalji izravno na info@kpdinfo.com
           </a>
         </div>
       </form>
