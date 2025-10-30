@@ -7,6 +7,47 @@ import miai1 from "../assets/miai-headline.webp";
 import miai2 from "../assets/miai-ikone-red.webp";
 import miai3 from "../assets/miai-roi.webp";
 import miai4 from "../assets/miai-ai-integrations.webp";
+import { motion, useReducedMotion, useInView } from "framer-motion";
+import { useRef } from "react";
+
+
+function Reveal({
+  children,
+  from = "left",      // "left" | "right"
+  delay = 0,          // s (samo dodatni delay; inView triger je scroll)
+  className = "",
+}: {
+  children: React.ReactNode;
+  from?: "left" | "right";
+  delay?: number;
+  className?: string;
+}) {
+  const prefersReduced = useReducedMotion();
+  const ref = useRef<HTMLDivElement | null>(null);
+  const inView = useInView(ref, { once: true, margin: "-10% 0px -10% 0px" });
+
+  const xFrom = from === "left" ? -80 : 80;
+
+  const initial = prefersReduced ? { opacity: 1 } : { opacity: 0, x: xFrom };
+  const animate =
+    prefersReduced
+      ? { opacity: 1 }
+      : (inView ? { opacity: 1, x: 0 } : initial);
+
+  return (
+    <motion.div
+      ref={ref}
+      className={className}
+      initial={initial}
+      animate={animate}
+      transition={{ delay, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+
 export default function ONama() {
   const [dark, setDark] = useState(false);
 
@@ -29,7 +70,7 @@ export default function ONama() {
     document.documentElement.classList.toggle("dark", dark);
     localStorage.setItem("kpd_theme", dark ? "dark" : "light");
   }, [dark]);
-
+  
   // ——— Kontakt (mailto) ———
   function handleContactSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -75,42 +116,38 @@ export default function ONama() {
       <Header dark={dark} setDark={setDark} />
 
       <main className="mx-auto max-w-5xl px-4 py-10 space-y-10">
-        {/* HERO s pozadinskom ilustracijom */}
-        <section className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
-          <img
-            src={miai}            // (neurons + skyline, “Mi smo AI…”)
-            alt="MIAI — tim za pametnu automatizaciju"
-            loading="eager"
-            className="w-full h-70 sm:h-86 object-cover object-center opacity-95 dark:opacity-90"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-white/70 via-white/10 to-transparent dark:from-slate-950/70" />
-          <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">MIAI</h1>
-            <p className="mt-2 text-slate-700 dark:text-slate-300">
-              Mi smo AI — tim za pametnu automatizaciju i temeljitu operativnu sustavnost.
-            </p>
-          </div>
-        </section>
+        {/* HERO */}
+<section className="relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800">
+  <Reveal from="left" delay={1}>
+    <img
+      src={miai}
+      alt="MIAI — tim za pametnu automatizaciju"
+      loading="eager"
+      className="w-full h-70 sm:h-86 object-cover object-center opacity-95 dark:opacity-90"
+    />
+  </Reveal>
+  <div className="absolute inset-0 bg-gradient-to-t from-white/70 via-white/10 to-transparent dark:from-slate-950/70" />
+  <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
+    <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">MIAI</h1>
+    <p className="mt-2 text-slate-700 dark:text-slate-300">
+      Mi smo AI — tim za pametnu automatizaciju i temeljitu operativnu sustavnost.
+    </p>
+  </div>
+</section>
 
-        {/* Naslov odmah nakon hero-a */}
-        <header className="text-center">
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">O nama</h1>
-        </header>
+        {/* HEADLINE */}
+<section className="space-y-4">
+  <Reveal from="right">
+    <img
+      src={miai1}
+      alt="AI kompetencije i učinci — headline"
+      loading="lazy"
+      className="w-full rounded-2xl border border-slate-200 dark:border-slate-800"
+    />
+  </Reveal>
+</section>
 
-        {/* HEADLINE slika preko cijele širine + tekst ispod slike */}
-        <section className="space-y-4">
-          <img
-            src={miai1}
-            alt="AI kompetencije i učinci — headline"
-            loading="lazy"
-            className="w-full rounded-2xl border border-slate-200 dark:border-slate-800"
-          />
-          {/* <p className="text-lg leading-relaxed text-slate-800 dark:text-slate-200">
-            Uz najnovije mogućnosti umjetne inteligencije (AI), ovaj učinak postaje još
-            izraženiji: spajamo domensko znanje, podatke i alate kako bismo vaše procese
-            učinili <strong>bržima, sigurnijima i isplativijima</strong>.
-          </p> */}
-        </section>
+
 
         {/* Što dobivate / Zašto MIAI */}
         {/* <section className="grid gap-6 md:grid-cols-2">
@@ -143,43 +180,60 @@ export default function ONama() {
           </Card>
         </section> */}
 
-        {/* PLAN PROCESA */}
-        <section className="space-y-4">
-          <h2 className="text-center text-2xl sm:text-3xl font-bold tracking-tight">Plan procesa</h2>
+        {/* Proces + ROI */}
+<div className="grid gap-6 md:grid-cols-3 md:items-center space-y-6">
+  <div className="md:col-span-2">
+    <Reveal from="left">
+      <div className="w-full">
+        <img
+          src={miai2}
+          alt="Proces suradnje: pilot, mjerenje, širenje"
+          loading="lazy"
+          className="w-full sm:w-[93%] mx-auto rounded-xl border border-slate-200 dark:border-slate-800"
+        />
+      </div>
+    </Reveal>
+  </div>
 
-          {/* Proces (smanjeno ~30%) + ROI u istoj ravnini */}
-          <div className="grid gap-6 md:grid-cols-3 md:items-center space-y-6">
-            {/* Lijevo: procesna slika umanjena na 70% širine kolone, centrirana */}
-            <div className="md:col-span-2">
-              <div className="w-full">
-                <img
-                  src={miai2}
-                  alt="Proces suradnje: pilot, mjerenje, širenje"
-                  loading="lazy"
-                  className="w-full sm:w-[93%] mx-auto rounded-xl border border-slate-200 dark:border-slate-800"
-                />
-              </div>
-            </div>
+  <Reveal from="right" className="md:col-span-1 self-center">
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle>Jasan ROI</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <img
+          src={miai3}
+          alt="Rast ROI-a kroz automatizaciju"
+          loading="lazy"
+          className="w-full max-w-xs mx-auto"
+        />
+        <p className="text-sm text-slate-600 dark:text-slate-300 text-center">
+          Mjerimo učinke i jasno komuniciramo povrat ulaganja prije širenja.
+        </p>
+      </CardContent>
+    </Card>
+  </Reveal>
+</div>
 
-            {/* Desno: ROI kartica — poravnata u istoj ravnini s procesnom sekcijom */}
-            <Card className="md:col-span-1 self-center">
-              <CardHeader className="pb-2">
-                <CardTitle>Jasan ROI</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <img
-                  src={miai3}
-                  alt="Rast ROI-a kroz automatizaciju"
-                  loading="lazy"
-                  className="w-full max-w-xs mx-auto"
-                />
-                <p className="text-sm text-slate-600 dark:text-slate-300 text-center">
-                  Mjerimo učinke i jasno komuniciramo povrat ulaganja prije širenja.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
+{/* Integracije */}
+<section className="grid gap-8 md:grid-cols-5 items-center">
+  <Reveal from="left" className="md:col-span-2">
+    <img
+      src={miai4}
+      alt="AI agenti povezani na e-mail, tablice, ERP i CRM"
+      loading="lazy"
+      className="w-full rounded-xl border border-slate-200 dark:border-slate-800"
+    />
+  </Reveal>
+
+  <Card className="md:col-span-3">
+    <CardContent className="pt-6">
+      <p className="text-lg">
+        <strong>Mi smo AI – MIAI</strong> — stručnjaci za AI automatizacije…
+      </p>
+    </CardContent>
+  </Card>
+</section>
 
         {/* Integracije AI agenata + završna poruka (ostavljeno kao prije) */}
         <section className="grid gap-8 md:grid-cols-5 items-center">
