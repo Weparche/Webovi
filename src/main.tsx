@@ -5,12 +5,14 @@ import App from "./App";
 import ONama from "./pages/ONama";
 import "./index.css";
 import Kontakt from "./pages/Kontakt";
+import Primjeri from "./pages/primjeri";
 
 
 const router = createBrowserRouter([
   { path: "/", element: <App /> },
   { path: "/o-nama", element: <ONama /> },
   { path: "/kontakt", element: <Kontakt /> },
+  { path: "/primjeri", element: <Primjeri /> },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

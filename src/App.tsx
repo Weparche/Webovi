@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Textarea } from "@/components/ui/Textarea";
 import { Loader2, Moon, Search, Sparkles, SunMedium, Trash2 } from "lucide-react";
 import { AltItem, KpdResponse, pretty, validateResponse } from "@/types";
-
+import Kontakt from "@/pages/Kontakt";
 
 
 /** --- DEMO fallback (koristi se samo ako API padne) --- */

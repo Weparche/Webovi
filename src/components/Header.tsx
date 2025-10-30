@@ -69,7 +69,7 @@ export default function Header({ dark, setDark }: HeaderProps) {
               <Home className="h-4 w-4" />
               <span>Početna</span>
             </a>
-            <a href="/#primjeri" className={navBtn} title="Primjeri upita">
+            <a href="/primjeri" className={navBtn} title="Primjeri upita">
               <LayoutGrid className="h-4 w-4" />
               <span>Primjeri</span>
             </a>
