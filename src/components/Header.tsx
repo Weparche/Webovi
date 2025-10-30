@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { Moon, SunMedium, Sparkles, Home, Menu, X } from "lucide-react";
+import { Moon, SunMedium, Sparkles, Home, Menu, X,LayoutGrid, Users2, Mail } from "lucide-react";
 import logoUrl from "../assets/logo.png";
 import chatgptUrl from "../assets/chatgpt.png";
 
@@ -70,12 +70,16 @@ export default function Header({ dark, setDark }: HeaderProps) {
               <span>Početna</span>
             </a>
             <a href="/#primjeri" className={navBtn} title="Primjeri upita">
-              <Sparkles className="h-4 w-4" />
+              <LayoutGrid className="h-4 w-4" />
               <span>Primjeri</span>
             </a>
             <a href="/o-nama" className={navBtn} title="O nama">
-              <Sparkles className="h-4 w-4" />
+              <Users2 className="h-4 w-4" />
               <span>O nama</span>
+            </a>          
+          <a href="/kontakt" className={navBtn} title="kontakt">
+              <Mail className="h-4 w-4" />
+              <span>Kontakt</span>
             </a>
           </nav>
 
@@ -122,6 +126,10 @@ export default function Header({ dark, setDark }: HeaderProps) {
           <a href="/o-nama" className={mobileLink} onClick={() => setOpen(false)}>
             <Sparkles className="h-5 w-5" />
             <span>O nama</span>
+          </a>
+          <a href="/kontakt" className={mobileLink} onClick={() => setOpen(false)}>
+            <Sparkles className="h-5 w-5" />
+            <span>Kontakt</span>
           </a>
         </nav>
       </div>

@@ -8,6 +8,7 @@ import { Loader2, Moon, Search, Sparkles, SunMedium, Trash2 } from "lucide-react
 import { AltItem, KpdResponse, pretty, validateResponse } from "@/types";
 
 
+
 /** --- DEMO fallback (koristi se samo ako API padne) --- */
 // function demoMock(query: string): KpdResponse {
 //   const isWeb = /web|stranic/i.test(query);
@@ -303,6 +304,48 @@ export default function App() {
 
 
       <main className="mx-auto max-w-6xl px-4 py-6 sm:py-5">
+
+        {/* --- ZAŠTO KPDinfo AI tražilica --- */}
+{/* --- ZAŠTO KPDinfo AI tražilica (Card verzija) --- */}
+<section
+  id="zasto-kpdinfo"
+  className="border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/30"
+>
+  <div className="mx-auto max-w-6xl px-4 py-4 sm:py-1">
+    <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-center">
+      Zašto <span className="text-blue-600 dark:text-blue-400">KPD info</span> AI tražilica
+    </h2>
+
+    <div className="mt-4">
+      <Card>
+        <CardContent className="pt-6">
+          <p className="text-slate-700 dark:text-slate-300">
+            KPDinfo AI ubrzava i standardizira razvrstavanje proizvoda i usluga prema <b>KPD 2025</b>, uz istodobno
+            usklađivanje s pripadnim <b>NKD 2025</b> podrazredom. Radi isključivo na temelju službenih dokumenata
+            <b> Državnog zavoda za statistiku</b>, koji su učitani u sustav, pa su rezultati transparentni, ponovljivi
+            i jednostavni za provjeru.
+          </p>
+
+          <div className="mt-4 min-h-5 flex items-center justify-center text-center">
+            <p className="text-xs sm:text-sm text-slate-600">
+              Za sve službene upite obratite se na adresu Državnog zavoda za statistiku —{" "}
+              <a
+                href="mailto:klasifikacija@dzs.hr"
+                className="underline underline-offset-2"
+              >
+                klasifikacija@dzs.hr
+              </a>
+              .
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+</section>
+
+
+
         <Card>
           <CardContent className="pt-2 space-y-1">
             {/* 3-stupčana mreža: [upit] [captcha] [gumbi] */}
@@ -671,7 +714,7 @@ export default function App() {
         </div>
 
         <p className="mt-10 text-center text-xs text-slate-500">
-          Radi isključivo na temelju službenih NKD/KPD 2025 dokumenata učitanih u agenta. ✦ Izradio: MIAI
+          Radi isključivo na temelju službenih NKD/KPD 2025 dokumenata učitanih u agenta. ✦ Izradio: MIAI - info@miai.com
         </p>
       </main>
     </div>

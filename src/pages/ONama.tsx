@@ -87,7 +87,7 @@ export default function ONama() {
           <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">MIAI</h1>
             <p className="mt-2 text-slate-700 dark:text-slate-300">
-              Mi smo AI — tim za pametnu automatizaciju i temeljitu operativnu sustavnost.
+              Vjera u budućnost!
             </p>
           </div>
         </section>
@@ -203,79 +203,51 @@ export default function ONama() {
         </section>
 
         {/* ——— Kontakt forma (mailto: info@miai.com) ——— */}
-        <section className="space-y-6">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-center">Kontaktirajte nas</h2>
-          <Card>
-            <CardContent className="pt-6">
-              <form onSubmit={handleContactSubmit} className="grid gap-4">
-                {/* honeypot */}
-                <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" />
+        <section id="kontakt" className="scroll-mt-24 space-y-6">
+  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-center">Kontaktirajte nas</h2>
+  <Card>
+    <CardContent className="pt-6">
+      <form onSubmit={handleContactSubmit} className="grid gap-4">
+        {/* honeypot */}
+        <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" />
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="grid gap-1.5">
-                    <label htmlFor="name" className="text-sm font-medium">Ime i prezime</label>
-                    <input
-                      id="name"
-                      name="name"
-                      required
-                      className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Vaše ime"
-                    />
-                  </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-1.5">
+            <label htmlFor="name" className="text-sm font-medium">Ime i prezime</label>
+            <input id="name" name="name" required className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Vaše ime" />
+          </div>
 
-                  <div className="grid gap-1.5">
-                    <label htmlFor="email" className="text-sm font-medium">E-mail</label>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      required
-                      className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="ime@domena.hr"
-                    />
-                  </div>
-                </div>
+          <div className="grid gap-1.5">
+            <label htmlFor="email" className="text-sm font-medium">E-mail</label>
+            <input id="email" name="email" type="email" required className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500" placeholder="ime@domena.hr" />
+          </div>
+        </div>
 
-                <div className="grid gap-1.5">
-                  <label htmlFor="company" className="text-sm font-medium">Tvrtka (neobavezno)</label>
-                  <input
-                    id="company"
-                    name="company"
-                    className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Naziv tvrtke"
-                  />
-                </div>
+        <div className="grid gap-1.5">
+          <label htmlFor="company" className="text-sm font-medium">Tvrtka (neobavezno)</label>
+          <input id="company" name="company" className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Naziv tvrtke" />
+        </div>
 
-                <div className="grid gap-1.5">
-                  <label htmlFor="message" className="text-sm font-medium">Poruka</label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    required
-                    rows={6}
-                    className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Kako vam možemo pomoći?"
-                  />
-                </div>
+        <div className="grid gap-1.5">
+          <label htmlFor="message" className="text-sm font-medium">Poruka</label>
+          <textarea id="message" name="message" required rows={6} className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500" placeholder="Kako vam možemo pomoći?" />
+        </div>
 
-                <label className="inline-flex items-start gap-3 text-sm">
-                  <input type="checkbox" name="consent" className="mt-1" />
-                  <span>
-                    Slažem se da me MIAI kontaktira povodom mog upita na e-mail adresu koju sam naveo/la.
-                  </span>
-                </label>
+        <label className="inline-flex items-start gap-3 text-sm">
+          <input type="checkbox" name="consent" className="mt-1" />
+          <span>Slažem se da me MIAI kontaktira povodom mog upita na e-mail adresu koju sam naveo/la.</span>
+        </label>
 
-                <div className="flex items-center gap-3">
-                  <Button type="submit">Pošalji upit</Button>
-                  <a href="mailto:weparche@gmail.com" className="text-sm text-blue-700 dark:text-blue-400 underline">
-                    ili pošalji izravno na info@miai.com
-                  </a>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </section>
-
+        <div className="flex items-center gap-3">
+          <Button type="submit">Pošalji upit</Button>
+          <a href="mailto:info@miai.com" className="text-sm text-blue-700 dark:text-blue-400 underline">
+            ili pošalji izravno na info@miai.com
+          </a>
+        </div>
+      </form>
+    </CardContent>
+  </Card>
+</section>
         {/* CTA */}
         <div className="text-center">
           <a href="/" className="inline-block">
