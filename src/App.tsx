@@ -714,7 +714,7 @@ export default function App() {
         </div>
 
         <p className="mt-10 text-center text-xs text-slate-500">
-          Radi isključivo na temelju službenih NKD/KPD 2025 dokumenata učitanih u agenta. ✦ Izradio: MIAI - info@miai.com
+          Radi isključivo na temelju službenih NKD/KPD 2025 dokumenata učitanih u agenta. ✦ Izradio: MIAI - info@kpdinfo.com
         </p>
       </main>
     </div>
