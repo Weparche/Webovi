@@ -137,6 +137,13 @@ export default function Kontakt() {
             </form>
           </CardContent>
         </Card>
+
+        {/* CTA */}
+                <div className="text-center">
+                  <a href="/" className="inline-block">
+                    <Button>Vrati se na KPD info DEMO</Button>
+                  </a>
+                </div>
       </main>
     </div>
   );
