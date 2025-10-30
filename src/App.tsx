@@ -313,7 +313,7 @@ export default function App() {
 >
   <div className="mx-auto max-w-6xl px-4 py-4 sm:py-1">
     <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-center">
-      Zašto <span className="text-blue-600 dark:text-blue-400">KPD info</span> AI tražilica
+      Zašto <span className="text-blue-600 dark:text-blue-400">KPD info</span> AI tražilica?
     </h2>
 
     <div className="mt-4">
