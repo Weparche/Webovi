@@ -14,7 +14,7 @@ export default function Header({ dark, setDark }: HeaderProps) {
 
   // zajedničke klase linkova (desktop)
    const navBtn =
-  "inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-[0.8rem] font-medium hover:bg-slate-100 dark:hover:bg-slate-800";
+  "inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-[0.9rem] font-medium hover:bg-slate-100 dark:hover:bg-slate-800";
 
 
 
