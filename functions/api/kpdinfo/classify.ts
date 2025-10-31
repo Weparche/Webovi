@@ -10,62 +10,54 @@ type Env = {
   VS_KPD_ID?: string;
 };
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*", // po potrebi stavi točan origin npr. https://kpdinfo.hr
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
+function buildCorsHeaders(req: Request) {
+  const origin = req.headers.get("origin") || "*";
+  const allowOrigin =
+    /https?:\/\/(localhost(:\d+)?|127\.0\.0\.1|www\.kpdinfo\.com|kpdinfo\.com)$/i.test(origin)
+      ? origin
+      : "*";
 
-function jsonResponse(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json", ...CORS },
-  });
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Vary": "Origin",
+  };
 }
 
-export const onRequestOptions = async () => new Response(null, { status: 204, headers: CORS });
+export const onRequestOptions = async ({ request }: { request: Request }) =>
+  new Response(null, { status: 204, headers: buildCorsHeaders(request) });
 
 export const onRequestPost = async (ctx: { request: Request; env: Env }) => {
+  const CORS = buildCorsHeaders(ctx.request);
+
+  const json = (data: unknown, status = 200) =>
+    new Response(JSON.stringify(data), {
+      status,
+      headers: { "Content-Type": "application/json", ...CORS },
+    });
+
   try {
-    // --- 1) Parse body sigurno ---
-    let body: any = null;
+    // 1) Sigurno parsiranje JSON-a
+    let body: any;
     try {
       body = await ctx.request.json();
     } catch {
-      return jsonResponse({ error: "BAD_REQUEST", message: "Tijelo zahtjeva mora biti JSON." }, 400);
+      return json({ error: "BAD_REQUEST", message: "Tijelo zahtjeva mora biti JSON." }, 400);
     }
 
-    // Prihvaćamo i q i input_as_text (kompatibilnost FE verzija)
+    // 2) Prihvaćaj i `q` i `input_as_text`
     const input = String(body?.input_as_text ?? body?.q ?? "").trim();
-    if (!input) return jsonResponse({ error: "BAD_REQUEST", message: "Prazan upit." }, 400);
-    if (input.length > 2000) return jsonResponse({ error: "BAD_REQUEST", message: "Upit je predugačak." }, 400);
+    if (!input) return json({ error: "BAD_REQUEST", message: "Prazan upit." }, 400);
 
-    // --- 2) Validacija ENV varijabli (odmah vrati jasan hint) ---
-    const {
-      OPENAI_API_KEY,
-      OPENAI_PROJECT,
-      OPENAI_ORG,
-      VS_NKD_ID,
-      VS_KPD_ID,
-    } = ctx.env || ({} as Env);
+    // 3) ENV provjera
+    const { OPENAI_API_KEY, OPENAI_PROJECT, OPENAI_ORG, VS_NKD_ID, VS_KPD_ID } = ctx.env || {};
+    if (!OPENAI_API_KEY) return json({ error: "CONFIG_ERROR", message: "OPENAI_API_KEY nije postavljen." }, 500);
+    if (!VS_NKD_ID && !VS_KPD_ID)
+      return json({ error: "CONFIG_ERROR", message: "Nedostaje VS_NKD_ID ili VS_KPD_ID." }, 500);
 
-    if (!OPENAI_API_KEY) {
-      return jsonResponse(
-        { error: "CONFIG_ERROR", message: "OPENAI_API_KEY nije postavljen u env." },
-        500
-      );
-    }
-
-    // Može biti dovoljan jedan VS ako u njemu imaš SVE datoteke (instructions+NKD+KPD)
-    if (!VS_NKD_ID && !VS_KPD_ID) {
-      return jsonResponse(
-        { error: "CONFIG_ERROR", message: "Nije postavljen VS_NKD_ID ili VS_KPD_ID." },
-        500
-      );
-    }
-
-    // --- 3) Pozovi core (proslijedi i Project/Org) ---
-    const result = await classifyCore(input, {
+    // 4) Poziv core-a (proslijedi i Project/Org)
+    const out = await classifyCore(input, {
       OPENAI_API_KEY,
       OPENAI_PROJECT,
       OPENAI_ORG,
@@ -73,18 +65,11 @@ export const onRequestPost = async (ctx: { request: Request; env: Env }) => {
       VS_KPD_ID,
     });
 
-    return jsonResponse(result, 200);
+    return json(out, 200);
   } catch (e: any) {
-    // Cloudflare ima Ray-ID header u requestu; korisno za korelaciju logova
     const ray = ctx.request.headers.get("cf-ray") || undefined;
-
-    // Ne odavati stack u produkciji – samo kratka poruka i trag
-    return jsonResponse(
-      {
-        error: "CLASSIFY_FAILED",
-        message: String(e?.message || "Unexpected error"),
-        ray, // pomaže u logovima
-      },
+    return json(
+      { error: "CLASSIFY_FAILED", message: String(e?.message || "Unexpected error"), ray },
       500
     );
   }
