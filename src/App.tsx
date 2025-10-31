@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Loader2, Moon, Search, Sparkles, LayoutGrid, SunMedium, Trash2 } from "lucide-react";
 import { AltItem, KpdResponse, pretty, validateResponse } from "@/types";
 import Kontakt from "@/pages/Kontakt";
+import CookieConsent from "@/components/CookieConsent";
 
 
 /** --- DEMO fallback (koristi se samo ako API padne) --- */
@@ -293,8 +294,9 @@ export default function App() {
         .animate-glow { animation: glowBlue 1.8s ease-in-out infinite; }
       `}</style>
 
-      {/* ZAJEDNIČKI HEADER */}
       <Header dark={dark} setDark={setDark} />
+{/* Cookie banner */}
+<CookieConsent />
 
       {/* GLOBALNA POZADINA — 50% prozirna, preko cijele stranice */}
 {/* <div
