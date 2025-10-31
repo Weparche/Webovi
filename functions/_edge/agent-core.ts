@@ -307,7 +307,8 @@ function buildPayload(input_as_text: string, vectorIds: string[]) {
     text: {
       format: { type: "json_schema", name: "KpdResponse", schema: JSON_SCHEMA, strict: true },
     },
-    reasoning: { effort: "low" },
+    reasoning: { effort: "low", summary: "detailed" }, // traži sažetak razmišljanja
+    
 
     // deklariraj file_search alat i veži VS ID-jeve
     tools: [
