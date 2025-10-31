@@ -25,7 +25,6 @@ export type AgentEnv = {
  *                              Utils
  * ------------------------------------------------------------------ */
 
-
 /** Izvlači JSON iz Responses API odgovora (output_parsed > content json > tekstualni JSON) */
 function extractParsed(data: any): any | null {
   if (data?.output_parsed) return data.output_parsed;
@@ -179,7 +178,7 @@ async function assertVectorStoreVisible(apiKey: string, project: string | undefi
  *                      Prompt & JSON Schema
  * ------------------------------------------------------------------ */
 
-const SYSTEM_PROMPT = `KPD frik v6 — službene upute (Production Mode)
+const SYSTEM_PROMPT = ` KPD frik v6 — službene upute (Production Mode)
  Svrha
 Tvoj zadatak je klasifikacija djelatnosti, proizvoda i usluga u skladu s:
 NKD 2025 – Nacionalna klasifikacija djelatnosti Republike Hrvatske
