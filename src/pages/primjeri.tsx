@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Sparkles } from "lucide-react";
+import { LayoutGrid } from "lucide-react";
 import { AltItem } from "@/types";
 import { Button } from "@/components/ui/Button";
 
@@ -86,7 +86,7 @@ export default function Primjeri() {
               <Card key={ex.label} className="hover:shadow-md transition">
                 <CardHeader className="pb-2">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
+                    <LayoutGrid className="h-4 w-4" />
                     <CardTitle className="text-base">{ex.label}</CardTitle>
                   </div>
                 </CardHeader>

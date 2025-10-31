@@ -87,7 +87,7 @@ export default function ONama() {
           <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
             <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">MIAI</h1>
             <p className="mt-2 text-slate-700 dark:text-slate-300">
-              Vjera u budućnost!
+              Vjera u tehnološku budućnost!
             </p>
           </div>
         </section>
