@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Card,CardKPD, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Textarea } from "@/components/ui/Textarea";
-import { Loader2, Moon, Search, Sparkles, SunMedium, Trash2 } from "lucide-react";
+import { Loader2, Moon, Search, Sparkles, LayoutGrid, SunMedium, Trash2 } from "lucide-react";
 import { AltItem, KpdResponse, pretty, validateResponse } from "@/types";
 import Kontakt from "@/pages/Kontakt";
 
@@ -670,7 +670,7 @@ export default function App() {
               <Card key={ex.label} className="hover:shadow-md transition">
                 <CardHeader className="pb-2">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
+                    <LayoutGrid className="h-4 w-4" />
                     <CardTitle className="text-base">{ex.label}</CardTitle>
                   </div>
                 </CardHeader>
