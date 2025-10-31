@@ -25,6 +25,7 @@ export type AgentEnv = {
  *                              Utils
  * ------------------------------------------------------------------ */
 
+
 /** Izvlači JSON iz Responses API odgovora (output_parsed > content json > tekstualni JSON) */
 function extractParsed(data: any): any | null {
   if (data?.output_parsed) return data.output_parsed;

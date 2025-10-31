@@ -62,29 +62,22 @@ function usedRetrieval(data: any): boolean {
   const out = Array.isArray(data?.output) ? data.output : [];
 
   for (const msg of out) {
-    // 1) klasični poziv alata
     if (Array.isArray(msg?.tool_calls) && msg.tool_calls.some((tc: any) =>
       (tc?.type || tc?.tool_type) === "file_search" || tc?.name === "file_search")) return true;
 
-    // 2) content varijante
     const content = Array.isArray(msg?.content) ? msg.content : [];
     for (const c of content) {
-      // a) tool_use / tool_result stil
       if (c?.type === "tool_use" || c?.type === "tool_result") {
         if (c?.name === "file_search" || c?.tool_name === "file_search") return true;
       }
-      // b) eksplicitni “file_search_*” tipovi (ovisno o snapshotu)
       if (c?.type === "file_search_results" || c?.type === "file_search_call") return true;
-      // c) anotacije s referencama na datoteke
       if (Array.isArray(c?.annotations) && c.annotations.some((a: any) =>
         a?.file_id || a?.filename || (typeof a?.type === "string" && a.type.includes("file")))) return true;
     }
   }
 
-  // 3) included blok (kad koristiš include: ["file_search_call.results"])
   if (data?.included && JSON.stringify(data.included).includes("file_search")) return true;
 
-  // 4) fallback tekstualni tragovi
   if (out.some((m: any) =>
     JSON.stringify(m?.content || []).toLowerCase().includes("searched files") ||
     JSON.stringify(m?.content || []).includes("KPD_2025_struktura.json") ||
@@ -175,13 +168,56 @@ async function assertVectorStoreVisible(apiKey: string, project: string | undefi
 }
 
 /** ------------------------------------------------------------------
- *                      Prompt & JSON bootstrap
+ *                      Prompt & JSON Schema
  * ------------------------------------------------------------------ */
 
-/** Naziv obaveznih instrukcija u VS */
+/** Naziv instrukcijskog fajla u Vector Storeu */
 const INSTRUCTIONS_FILENAME = "KPDfrik_instructions_v6.md";
 
-/** Default fallback VS – tvoj ID (ako env nema ništa) */
+/** Sažeti SYSTEM_PROMPT — najprije obavezno otvori instrukcije iz VS-a */
+const SYSTEM_PROMPT = `KPD frik v6 — minimal
+1) OBAVEZNO najprije otvori u vector storeu datoteku **${INSTRUCTIONS_FILENAME}** putem file_search i slijedi isključivo pravila/opis iz nje.
+   - Ako ${INSTRUCTIONS_FILENAME} nije pronađen ili nije otvoren (nema anotacija), prekini i vrati grešku.
+2) Zatim koristi isključivo dokumente iz VS-a:
+   - "NKD_2025_struktura_i_objasnjenja.pdf" (NKD podrazred dd.dd(.d)? + naziv)
+   - "KPD_2025_struktura.json" (KPD dd.dd.dd + naziv)
+3) Ne koristi vanjsko znanje niti stare klasifikacije.
+4) Prije odgovora provjeri stvarnu prisutnost šifri i regexe.
+5) Vrati točno JEDAN JSON objekt po zadanoj shemi (bez dodatnog teksta).`;
+
+/** JSON Schema (Responses json_schema formatter) — ostaje ista */
+const JSON_SCHEMA: Record<string, any> = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    NKD_4: { type: ["string", "null"], pattern: "^\\d{2}\\.\\d{2}(\\.\\d)?$" },
+    NKD_naziv: { type: ["string", "null"] },
+    KPD_6: { type: ["string", "null"], pattern: "^\\d{2}\\.\\d{2}\\.\\d{2}$" },
+    Naziv_proizvoda: { type: ["string", "null"] },
+    Razlog_odabira: { type: ["string", "null"] },
+    Poruka: { type: ["string", "null"] },
+    alternativne: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          KPD_6: { type: ["string", "null"], pattern: "^\\d{2}\\.\\d{2}\\.\\d{2}$" },
+          Naziv: { type: "string" },
+          ["kratko_zašto"]: { type: ["string", "null"] },
+        },
+        required: ["KPD_6", "Naziv", "kratko_zašto"],
+      },
+    },
+  },
+  required: ["NKD_4", "NKD_naziv", "KPD_6", "Naziv_proizvoda", "Razlog_odabira", "Poruka", "alternativne"],
+};
+
+/** ------------------------------------------------------------------
+ *                        Vector Stores & Payload
+ * ------------------------------------------------------------------ */
+
+/** Default fallback VS – ostavi svoj ID ako želiš */
 const DEFAULT_VECTOR_STORES = ["vs_68f0cfbb2d9081918800e3eb92d9d483"];
 
 /** Složi listu VS-ova: prvo iz ENV-a (ako postoje), inače default. */
@@ -191,14 +227,13 @@ function getVectorStoreIds(env?: AgentEnv): string[] {
   return Array.from(new Set(base));
 }
 
-/** PRVI PROLAZ: iz VS učitaj *isključivo* instrukcije i vrati {prompt, json_schema} */
-async function bootstrapInstructions(
+/** Minimalni pre-korak: mora otvoriti upravo KPDfrik_instructions_v6.md */
+async function assertInstructionsOpened(
   apiKey: string,
   project: string | undefined,
   org: string | undefined,
   vectorIds: string[]
-): Promise<{ prompt: string; json_schema: Record<string, any> }> {
-
+) {
   const payload = {
     model: "gpt-5",
     input: [
@@ -207,33 +242,15 @@ async function bootstrapInstructions(
         content: [{
           type: "input_text",
           text:
-`Bootstrap runtime policy. Your ONLY task:
-1) Use file_search to open **${INSTRUCTIONS_FILENAME}** from the provided vector store(s).
-2) Read it and return EXACT JSON:
-{
-  "prompt": "<compact system prompt distilled from the file>",
-  "json_schema": { ...the exact JSON Schema from the file... }
-}
-HARD REQUIREMENTS:
-- You MUST actually open ${INSTRUCTIONS_FILENAME} via file_search (include file annotations).
-- If the file is not found or not opened, return {"prompt":"","json_schema":{"error":"missing_instructions"}} and STOP.`
+`Open exactly one file via file_search: **${INSTRUCTIONS_FILENAME}**.
+You must actually open it and include file annotations. Return {"ok":true} as JSON.`
         }]
       },
-      { role: "user", content: [{ type: "input_text", text: "Load canonical instructions." }] }
+      { role: "user", content: [{ type: "input_text", text: "Open the canonical instructions file now." }] }
     ],
-    text: {
-      format: {
-        type: "json_schema",
-        name: "Bootstrap",
-        schema: {
-          type: "object",
-          properties: { prompt: { type: "string" }, json_schema: { type: "object" } },
-          required: ["prompt", "json_schema"],
-          additionalProperties: true
-        },
-        strict: true
-      }
-    },
+    text: { format: { type: "json_schema", name: "Ok", schema: {
+      type: "object", properties: { ok: { type: "boolean" } }, required: ["ok"], additionalProperties: true
+    }, strict: true } },
     tools: [{ type: "file_search", vector_store_ids: vectorIds }],
     include: ["file_search_call.results"],
     reasoning: { effort: "low" }
@@ -241,42 +258,38 @@ HARD REQUIREMENTS:
 
   const data = await callOpenAI(payload, apiKey, project, org);
 
-  // OBAVEZNO: dokaz da je baš taj file čitan
   const proof = retrievalProof(data);
   const referencedByName =
     JSON.stringify(data?.output || []).includes(INSTRUCTIONS_FILENAME) ||
     JSON.stringify(data?.included || []).includes(INSTRUCTIONS_FILENAME);
 
   if (!usedRetrieval(data) || !referencedByName) {
-    throw new Error(`Instrukcijski file nije čitan ili nije nađen. Proof: ${proof}`);
+    throw new Error(`Instrukcije nisu otvorene: očekivan file "${INSTRUCTIONS_FILENAME}". Proof: ${proof}`);
   }
-
-  const parsed = extractParsed(data);
-  if (!parsed?.prompt || !parsed?.json_schema) {
-    throw new Error("Bootstrap nije vratio prompt/json_schema.");
-  }
-
-  return { prompt: parsed.prompt, json_schema: parsed.json_schema };
 }
 
-/** Drugi prolaz payload: koristi bootstrapani prompt + schema; dopušten file_search (NKD/KPD) */
-function buildPayloadWithBootstrap(
-  input_as_text: string,
-  vectorIds: string[],
-  systemPrompt: string,
-  schema: Record<string, any>
-) {
+/** Payload za Responses: gpt-5 + prisilni file_search (bez attachments/tool_resources) */
+function buildPayload(input_as_text: string, vectorIds: string[]) {
   return {
     model: "gpt-5",
     input: [
-      { role: "system", content: [{ type: "input_text", text: systemPrompt }] },
+      { role: "system", content: [{ type: "input_text", text: SYSTEM_PROMPT }] },
       { role: "user", content: [{ type: "input_text", text: input_as_text }] },
     ],
-    text: { format: { type: "json_schema", name: "KpdResponse", schema, strict: true } },
+    text: {
+      format: { type: "json_schema", name: "KpdResponse", schema: JSON_SCHEMA, strict: true },
+    },
     reasoning: { effort: "low" },
+
+    // deklariraj file_search alat i veži VS ID-jeve
     tools: [
       { type: "file_search", vector_store_ids: vectorIds },
     ],
+
+    // (po potrebi može se uključiti prisila alata):
+    // tool_choice: { type: "file_search" },
+
+    // vrati rezultate pretrage u included (ako snapshot podržava)
     include: ["file_search_call.results"],
   };
 }
@@ -287,7 +300,7 @@ function buildPayloadWithBootstrap(
 
 /**
  * Izvrši klasifikaciju NKD/KPD strogo na temelju dokumenata u Vector Storeu.
- * OBAVEZNO: prvo bootstrap (instrukcije iz KPDfrik_instructions_v6.md), pa tek onda PDF/JSON.
+ * OBAVEZNO: prije svega otvori instrukcije (KPDfrik_instructions_v6.md), zatim nastavi s postojećom logikom.
  */
 export async function classifyCore(input_as_text: string, env?: AgentEnv): Promise<KpdResponse> {
   const apiKey = env?.OPENAI_API_KEY;
@@ -298,28 +311,19 @@ export async function classifyCore(input_as_text: string, env?: AgentEnv): Promi
   const vectorIds = getVectorStoreIds(env);
   if (!vectorIds.length) throw new Error("Nije postavljen niti jedan Vector Store ID.");
 
-  // (opcionalno) self-test da je prvi VS vidljiv u istom Projectu
+  // (opcionalno) self-test da je barem prvi VS vidljiv u istom Projectu
+  try { await assertVectorStoreVisible(apiKey, project, org, vectorIds[0]); }
+  catch (e) { console.warn(String(e)); }
+
+  // === PRE-KORAK: obavezno otvori instrukcije iz VS-a
+  await assertInstructionsOpened(apiKey, project, org, vectorIds);
+
+  // === TVOJA POSTOJEĆA LOGIKA (ne mijenjamo) ===
+  const data = await callOpenAI(buildPayload(input_as_text, vectorIds), apiKey, project, org);
+
+  // dijagnostika
   try {
-    await assertVectorStoreVisible(apiKey, project, org, vectorIds[0]);
-  } catch (e) {
-    console.warn(String(e));
-  }
-
-  // === PROLAZ 1: učitaj kanonske instrukcije ===
-  console.time("bootstrap_instructions");
-  const { prompt: systemPrompt, json_schema } = await bootstrapInstructions(apiKey, project, org, vectorIds);
-  console.timeEnd("bootstrap_instructions");
-
-  // === PROLAZ 2: klasifikacija (sada smije čitati NKD PDF + KPD JSON) ===
-  console.time("classify_call");
-  const data = await callOpenAI(
-    buildPayloadWithBootstrap(input_as_text, vectorIds, systemPrompt, json_schema),
-    apiKey, project, org
-  );
-  console.timeEnd("classify_call");
-
-  // dijagnostika — očekujemo da je koristio retrieval (PDF/JSON)
-  try {
+    console.log("model_used:", data?.model);
     const files: string[] = [];
     const out = Array.isArray(data?.output) ? data.output : [];
     for (const msg of out) {
