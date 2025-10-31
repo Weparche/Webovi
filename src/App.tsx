@@ -183,6 +183,7 @@ export default function App() {
       kpd: resp.KPD_6 ?? null,
       kpd_naziv: resp.Naziv_proizvoda ?? null,
       razlog: resp.Razlog_odabira ?? null,
+      alternativne: resp.alternativne ?? [],
       ts: Date.now(),
     };
     setHistory((prev) => {
@@ -320,7 +321,7 @@ export default function App() {
       <Card>
         <CardContent className="pt-6">
           <p className="text-slate-700 dark:text-slate-300">
-            KPDinfo AI ubrzava i standardizira razvrstavanje proizvoda i usluga prema <b>KPD 2025</b>, uz istodobno
+            KPDinfo AI alat ubrzava i standardizira razvrstavanje proizvoda i usluga prema <b>KPD 2025</b>, uz istodobno
             usklađivanje s pripadnim <b>NKD 2025</b> podrazredom. Radi isključivo na temelju službenih dokumenata
             <b> Državnog zavoda za statistiku</b>, koji su učitani u sustav, pa su rezultati transparentni, ponovljivi
             i jednostavni za provjeru.
@@ -328,7 +329,7 @@ export default function App() {
 
           <div className="mt-4 min-h-5 flex items-center justify-center text-center">
             <p className="text-xs sm:text-sm text-slate-600">
-              Za sve službene upite obratite se na adresu Državnog zavoda za statistiku —{" "}
+              Za sve službene KPD upite obratite se na adresu Državnog zavoda za statistiku —{" "}
               <a
                 href="mailto:klasifikacija@dzs.hr"
                 className="underline underline-offset-2"
