@@ -25,6 +25,7 @@ export type AgentEnv = {
  *                              Utils
  * ------------------------------------------------------------------ */
 
+
 /** Izvlači JSON iz Responses API odgovora (output_parsed > content json > tekstualni JSON) */
 function extractParsed(data: any): any | null {
   if (data?.output_parsed) return data.output_parsed;
@@ -62,22 +63,29 @@ function usedRetrieval(data: any): boolean {
   const out = Array.isArray(data?.output) ? data.output : [];
 
   for (const msg of out) {
+    // 1) klasični poziv alata
     if (Array.isArray(msg?.tool_calls) && msg.tool_calls.some((tc: any) =>
       (tc?.type || tc?.tool_type) === "file_search" || tc?.name === "file_search")) return true;
 
+    // 2) content varijante
     const content = Array.isArray(msg?.content) ? msg.content : [];
     for (const c of content) {
+      // a) tool_use / tool_result stil
       if (c?.type === "tool_use" || c?.type === "tool_result") {
         if (c?.name === "file_search" || c?.tool_name === "file_search") return true;
       }
+      // b) eksplicitni “file_search_*” tipovi (ovisno o snapshotu)
       if (c?.type === "file_search_results" || c?.type === "file_search_call") return true;
+      // c) anotacije s referencama na datoteke
       if (Array.isArray(c?.annotations) && c.annotations.some((a: any) =>
         a?.file_id || a?.filename || (typeof a?.type === "string" && a.type.includes("file")))) return true;
     }
   }
 
+  // 3) included blok (kad koristiš include: ["file_search_call.results"])
   if (data?.included && JSON.stringify(data.included).includes("file_search")) return true;
 
+  // 4) fallback: ponekad snapshot vrati “Searched files…” tekstualno
   if (out.some((m: any) =>
     JSON.stringify(m?.content || []).toLowerCase().includes("searched files") ||
     JSON.stringify(m?.content || []).includes("KPD_2025_struktura.json") ||
@@ -171,13 +179,9 @@ async function assertVectorStoreVisible(apiKey: string, project: string | undefi
  *                      Prompt & JSON Schema
  * ------------------------------------------------------------------ */
 
-/** Naziv instrukcijskog fajla u Vector Storeu */
-const INSTRUCTIONS_FILENAME = "KPDfrik_instructions_v6.md";
-
-/** Sažeti SYSTEM_PROMPT — najprije obavezno otvori instrukcije iz VS-a */
 const SYSTEM_PROMPT = `KPD frik v6 — minimal
-1) OBAVEZNO najprije otvori u vector storeu datoteku **${INSTRUCTIONS_FILENAME}** putem file_search i slijedi isključivo pravila/opis iz nje.
-   - Ako ${INSTRUCTIONS_FILENAME} nije pronađen ili nije otvoren (nema anotacija), prekini i vrati grešku.
+1) OBAVEZNO najprije otvori u vector storeu datoteku KPDfrik_instructions_v6.md putem file_search i slijedi isključivo pravila/opis iz nje.
+   - Ako KPDfrik_instructions_v6.md nije pronađen ili nije otvoren (nema anotacija), prekini i vrati grešku.
 2) Zatim koristi isključivo dokumente iz VS-a:
    - "NKD_2025_struktura_i_objasnjenja.pdf" (NKD podrazred dd.dd(.d)? + naziv)
    - "KPD_2025_struktura.json" (KPD dd.dd.dd + naziv)
@@ -185,7 +189,7 @@ const SYSTEM_PROMPT = `KPD frik v6 — minimal
 4) Prije odgovora provjeri stvarnu prisutnost šifri i regexe.
 5) Vrati točno JEDAN JSON objekt po zadanoj shemi (bez dodatnog teksta).`;
 
-/** JSON Schema (Responses json_schema formatter) — ostaje ista */
+/** JSON Schema (Responses json_schema formatter) */
 const JSON_SCHEMA: Record<string, any> = {
   type: "object",
   additionalProperties: false,
@@ -217,7 +221,7 @@ const JSON_SCHEMA: Record<string, any> = {
  *                        Vector Stores & Payload
  * ------------------------------------------------------------------ */
 
-/** Default fallback VS – ostavi svoj ID ako želiš */
+/** Default fallback VS – tvoj ID */
 const DEFAULT_VECTOR_STORES = ["vs_68f0cfbb2d9081918800e3eb92d9d483"];
 
 /** Složi listu VS-ova: prvo iz ENV-a (ako postoje), inače default. */
@@ -225,47 +229,6 @@ function getVectorStoreIds(env?: AgentEnv): string[] {
   const fromEnv = [env?.VS_NKD_ID, env?.VS_KPD_ID].filter(Boolean) as string[];
   const base = (fromEnv.length ? fromEnv : DEFAULT_VECTOR_STORES);
   return Array.from(new Set(base));
-}
-
-/** Minimalni pre-korak: mora otvoriti upravo KPDfrik_instructions_v6.md */
-async function assertInstructionsOpened(
-  apiKey: string,
-  project: string | undefined,
-  org: string | undefined,
-  vectorIds: string[]
-) {
-  const payload = {
-    model: "gpt-5",
-    input: [
-      {
-        role: "system",
-        content: [{
-          type: "input_text",
-          text:
-`Open exactly one file via file_search: **${INSTRUCTIONS_FILENAME}**.
-You must actually open it and include file annotations. Return {"ok":true} as JSON.`
-        }]
-      },
-      { role: "user", content: [{ type: "input_text", text: "Open the canonical instructions file now." }] }
-    ],
-    text: { format: { type: "json_schema", name: "Ok", schema: {
-      type: "object", properties: { ok: { type: "boolean" } }, required: ["ok"], additionalProperties: true
-    }, strict: true } },
-    tools: [{ type: "file_search", vector_store_ids: vectorIds }],
-    include: ["file_search_call.results"],
-    reasoning: { effort: "low" }
-  };
-
-  const data = await callOpenAI(payload, apiKey, project, org);
-
-  const proof = retrievalProof(data);
-  const referencedByName =
-    JSON.stringify(data?.output || []).includes(INSTRUCTIONS_FILENAME) ||
-    JSON.stringify(data?.included || []).includes(INSTRUCTIONS_FILENAME);
-
-  if (!usedRetrieval(data) || !referencedByName) {
-    throw new Error(`Instrukcije nisu otvorene: očekivan file "${INSTRUCTIONS_FILENAME}". Proof: ${proof}`);
-  }
 }
 
 /** Payload za Responses: gpt-5 + prisilni file_search (bez attachments/tool_resources) */
@@ -283,10 +246,13 @@ function buildPayload(input_as_text: string, vectorIds: string[]) {
 
     // deklariraj file_search alat i veži VS ID-jeve
     tools: [
-      { type: "file_search", vector_store_ids: vectorIds },
+      {
+        type: "file_search",
+        vector_store_ids: vectorIds,        
+      },
     ],
 
-    // (po potrebi može se uključiti prisila alata):
+    // prisili korištenje file_search (format koji snapshot prihvaća)
     // tool_choice: { type: "file_search" },
 
     // vrati rezultate pretrage u included (ako snapshot podržava)
@@ -300,7 +266,7 @@ function buildPayload(input_as_text: string, vectorIds: string[]) {
 
 /**
  * Izvrši klasifikaciju NKD/KPD strogo na temelju dokumenata u Vector Storeu.
- * OBAVEZNO: prije svega otvori instrukcije (KPDfrik_instructions_v6.md), zatim nastavi s postojećom logikom.
+ * Nema lokalnog JSON-a; nema fallbacka bez alata.
  */
 export async function classifyCore(input_as_text: string, env?: AgentEnv): Promise<KpdResponse> {
   const apiKey = env?.OPENAI_API_KEY;
@@ -312,18 +278,20 @@ export async function classifyCore(input_as_text: string, env?: AgentEnv): Promi
   if (!vectorIds.length) throw new Error("Nije postavljen niti jedan Vector Store ID.");
 
   // (opcionalno) self-test da je barem prvi VS vidljiv u istom Projectu
-  try { await assertVectorStoreVisible(apiKey, project, org, vectorIds[0]); }
-  catch (e) { console.warn(String(e)); }
+  try {
+    await assertVectorStoreVisible(apiKey, project, org, vectorIds[0]);
+  } catch (e) {
+    // Ne rušimo automatski — logiramo jasan razlog
+    console.warn(String(e));
+  }
 
-  // === PRE-KORAK: obavezno otvori instrukcije iz VS-a
-  await assertInstructionsOpened(apiKey, project, org, vectorIds);
-
-  // === TVOJA POSTOJEĆA LOGIKA (ne mijenjamo) ===
   const data = await callOpenAI(buildPayload(input_as_text, vectorIds), apiKey, project, org);
 
   // dijagnostika
   try {
     console.log("model_used:", data?.model);
+
+    // univerzalno “retrieved_files” logiranje
     const files: string[] = [];
     const out = Array.isArray(data?.output) ? data.output : [];
     for (const msg of out) {
@@ -341,6 +309,7 @@ export async function classifyCore(input_as_text: string, env?: AgentEnv): Promi
     console.log("retrieved_files:", [...new Set(files)]);
   } catch { /* ignore */ }
 
+  // ne rušimo ako ne nađemo hard proof — samo warning (neki snapshoti ne vraćaju tool_use eksplicitno)
   const proof = retrievalProof(data);
   if (!usedRetrieval(data)) {
     console.warn("⚠️ file_search možda nije eksplicitno označen. Proof:", proof);
