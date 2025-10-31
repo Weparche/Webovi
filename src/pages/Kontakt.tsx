@@ -47,7 +47,7 @@ export default function Kontakt() {
     const body = encodeURIComponent(
       `Ime i prezime: ${name}\nE-mail: ${email}\nTvrtka: ${company}\n\nPoruka:\n${message}`
     );
-    window.location.href = `mailto:info@miai.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:info@kpdinfo.com?subject=${subject}&body=${body}`;
     form.reset();
   }
 
@@ -120,8 +120,8 @@ export default function Kontakt() {
 
               <div className="flex items-center gap-3">
                 <Button type="submit">Pošalji upit</Button>
-                <a href="mailto:info@miai.com" className="text-sm text-blue-700 dark:text-blue-400 underline">
-                  ili pošalji izravno na info@miai.com
+                <a href="mailto:info@kpdinfo.com" className="text-sm text-blue-700 dark:text-blue-400 underline">
+                  ili pošalji izravno na info@kpdinfo.com
                 </a>
               </div>
 
