@@ -299,7 +299,7 @@ function getVectorStoreIds(env?: AgentEnv): string[] {
 /** Payload za Responses: gpt-5 + prisilni file_search (bez attachments/tool_resources) */
 function buildPayload(input_as_text: string, vectorIds: string[]) {
   return {
-    model: "gpt-5-mini",
+    model: "gpt-5-nano",
     input: [
       { role: "system", content: [{ type: "input_text", text: SYSTEM_PROMPT }] },
       { role: "user", content: [{ type: "input_text", text: input_as_text }] },
