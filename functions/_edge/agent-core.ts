@@ -218,12 +218,13 @@ Ako KPD šifra ne postoji:
 {   "NKD_4": "dd.dd.d", "NKD_naziv": "točan naziv iz NKD PDF tablice",  "KPD_6": null,   "Naziv_proizvoda": null,   "Razlog_odabira": "opis objašnjenja NKD podrazreda",   "Poruka": "Za ovaj NKD ne postoji točna KPD šifra u službenom dokumentu. Predložene su srodne šifre iz istog područja.",   "alternativne": [     {       "KPD_6": "xx.xx.xx",       "Naziv": "...",       "kratko_zašto": "..."     },     {       "KPD_6": "yy.yy.yy",       "Naziv": "...",       "kratko_zašto": "..."     }   ] } 
 
 4. Odredi alternativne šifre
-Nakon što pronađeš točnu KPD šifru ("KPD_6") u dokumentu KPD_2025_struktura.json, moraš uvijek provjeriti postoji li još 1–3 srodne šifre u istom prefiksu (iste prve 4 znamenke). U odjeljak "alternativne" obavezno dodaj do tri stvarne šifre koje postoje u dokumentu, ako imaju sličan opis ili značenje.
+Nakon što pronađeš točnu KPD šifru ("KPD_6") u dokumentu KPD_2025_struktura.json, moraš uvijek provjeriti postoji li još 1-3 srodne šifre u istom prefiksu (iste prve 4 znamenke). U odjeljak "alternativne" obavezno dodaj do tri stvarne šifre koje postoje u dokumentu, ako imaju sličan opis ili značenje.
 Pravila za izbor alternativnih:
 sve alternative moraju postojati u dokumentu KPD_2025_struktura.json
 moraju imati isti prefiks (prve četiri znamenke, npr. 47.55)
-odaberi šifre koje imaju različit, ali blizak naziv (npr. .02, .09, .99)
+odaberi točne KPD šifre ("KPD_6") imaju različit, ali blizak naziv (npr. .01, .02,) - ali samo ako postoje u u dokumentu KPD_2025_struktura.json
 nikad ne koristi iste šifre koje si već dao u "KPD_6"
+Ne izmišljaj šifre ako ne postoje, bolje vrati onda jednu alternativnu ili nijednu
 uvijek ih vrati u formatu:
 "alternativne": [   {     "KPD_6": "xx.xx.xx",     "Naziv": "točan naziv iz dokumenta",     "kratko_zašto": "kratko objašnjenje zašto bi mogla biti relevantna"   } ]
 
