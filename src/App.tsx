@@ -354,7 +354,8 @@ export default function App() {
               {/* Lijevo: upit */}
               <div>
                 <label htmlFor="inp" className="block text-sm text-slate-600 dark:text-slate-300 font-medium">
-                  Opiši proizvod/uslugu ili kombinaciju (npr. "prodaja i ugradnja klima uređaja")
+                  <span className="inline-flex items-center gap-2 text-green-600 dark:text-green-400 animate-glow font-bold">Isprobajte besplatni DEMO!</span>
+                 <br /> Opiši proizvod/uslugu ili kombinaciju (npr. "prodaja i ugradnja klima uređaja") 
                 </label>
                 <Textarea
                   id="inp"
