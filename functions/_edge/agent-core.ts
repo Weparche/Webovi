@@ -224,7 +224,7 @@ sve alternative moraju postojati u dokumentu KPD_2025_struktura.json
 moraju imati isti prefiks (prve četiri znamenke, npr. 47.55)
 odaberi točne KPD šifre ("KPD_6") imaju različit, ali blizak naziv (npr. .01, .02,) - ali samo ako postoje u u dokumentu KPD_2025_struktura.json
 nikad ne koristi iste šifre koje si već dao u "KPD_6"
-Ne izmišljaj šifre ako ne postoje, nego ponudi srodne šifre iz istog područja
+Ne izmišljaj šifre ako ne postoje
 uvijek ih vrati u formatu:
 "alternativne": [   {     "KPD_6": "xx.xx.xx",     "Naziv": "točan naziv iz dokumenta",     "kratko_zašto": "kratko objašnjenje zašto bi mogla biti relevantna"   } ]
 
