@@ -633,8 +633,7 @@ export default function App() {
         <Badge className="border border-green-600 text-green-700 dark:text-green-400">NKD</Badge>
         <span className="text-sm font-semibold">{h.nkd ?? "—"}</span>
       </div>
-      <div className="text-sm text-slate-700 dark:text-slate-200">
-        <Badge className="border border-green-600 text-green-700 dark:text-green-400">Naziv</Badge>
+      <div className="text-sm text-slate-700 dark:text-slate-200">        
         {h.nkd_naziv ?? "—"}
       </div>
     </div>
@@ -663,6 +662,7 @@ export default function App() {
               <span className="text-sm font-semibold">{alt.KPD_6 ?? "∅"}</span>
             </div>
             <div className="text-sm text-slate-700 dark:text-slate-200">
+              <Badge className="border border-green-600 text-green-700 dark:text-green-400">Naziv</Badge>
               {alt.Naziv ?? "—"}
             </div>
             {alt["kratko_zašto"] && (
