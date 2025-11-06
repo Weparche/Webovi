@@ -641,7 +641,7 @@ export default function App() {
             className="rounded-lg border p-3 bg-white/70 dark:bg-slate-900/60 backdrop-blur"
           >
             <div className="flex items-center gap-2 mb-1">
-              <Badge className="border border-slate-300 dark:border-slate-700">ALT</Badge>
+              <Badge className="border border-slate-300 dark:border-slate-700">KPD</Badge>
               <span className="text-sm font-semibold">{alt.KPD_6 ?? "∅"}</span>
             </div>
             <div className="text-sm text-slate-700 dark:text-slate-200">
