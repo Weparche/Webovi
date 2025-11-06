@@ -634,6 +634,7 @@ export default function App() {
         <span className="text-sm font-semibold">{h.nkd ?? "—"}</span>
       </div>
       <div className="text-sm text-slate-700 dark:text-slate-200">
+        <Badge className="border border-green-600 text-green-700 dark:text-green-400">Naziv</Badge>
         {h.nkd_naziv ?? "—"}
       </div>
     </div>
