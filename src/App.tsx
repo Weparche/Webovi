@@ -541,6 +541,14 @@ export default function App() {
     </CardHeader>
     <CardContent>
       <ul className="text-sm space-y-2">
+        {/* Header reda */}
+        <li className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs uppercase text-slate-500 tracking-wide">
+          <span>KPD šifra</span>
+          <span>Naziv proizvoda</span>
+          <span>Obrazloženje</span>
+        </li>
+
+        {/* Redovi s podacima */}
         {data.alternativne.map((a, idx) => {
           // toleriraj i "kratko_zasto" bez dijakritika ako backend to šalje
           const kratko =
@@ -548,12 +556,20 @@ export default function App() {
             (a as any).kratko_zasto ??
             "";
           return (
-            <li key={`${a.KPD_6 ?? "∅"}-${idx}`} className="leading-snug">
-              <span className="font-mono">{a.KPD_6 ?? "∅"}</span>{" "}
-              <span className="text-slate-700 dark:text-slate-200">— {a.Naziv}</span>
-              {kratko ? (
-                <span className="text-slate-500"> ({kratko})</span>
-              ) : null}
+            <li
+              key={`${a.KPD_6 ?? "∅"}-${idx}`}
+              className="grid grid-cols-1 sm:grid-cols-3 gap-2 leading-snug border-b last:border-b-0 border-slate-200/60 dark:border-slate-700/60 py-2"
+            >
+              {/* KPD šifra */}
+              <span className="font-mono">{a.KPD_6 ?? "∅"}</span>
+
+              {/* Naziv proizvoda */}
+              <span className="text-slate-700 dark:text-slate-200">{a.Naziv ?? ""}</span>
+
+              {/* Obrazloženje */}
+              <span className="text-slate-500">
+                {kratko || ""}
+              </span>
             </li>
           );
         })}
@@ -561,6 +577,7 @@ export default function App() {
     </CardContent>
   </Card>
 ) : null}
+
 
         {/* POVIJEST UPITA – prikaz cijelog rezultata */}
         <div className="mt-10">
