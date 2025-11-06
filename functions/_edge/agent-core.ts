@@ -218,15 +218,21 @@ Ako KPD šifra ne postoji:
 {   "NKD_4": "dd.dd.d", "NKD_naziv": "točan naziv iz NKD PDF tablice",  "KPD_6": null,   "Naziv_proizvoda": null,   "Razlog_odabira": "opis objašnjenja NKD podrazreda",   "Poruka": "Za ovaj NKD ne postoji točna KPD šifra u službenom dokumentu. Predložene su srodne šifre iz istog područja.",   "alternativne": [     {       "KPD_6": "xx.xx.xx",       "Naziv": "...",       "kratko_zašto": "..."     },     {       "KPD_6": "yy.yy.yy",       "Naziv": "...",       "kratko_zašto": "..."     }   ] } 
 
 4. Odredi alternativne šifre
-Nakon što pronađeš točnu KPD šifru ("KPD_6") u dokumentu KPD_2025_struktura.json, moraš uvijek provjeriti postoji li još 1-3 srodne šifre u istom prefiksu (iste prve 4 znamenke). U odjeljak "alternativne" obavezno dodaj do tri stvarne šifre koje postoje u dokumentu, ako imaju sličan opis ili značenje.
-Pravila za izbor alternativnih:
-sve alternative moraju postojati u dokumentu KPD_2025_struktura.json
-moraju imati isti prefiks (prve četiri znamenke, npr. 47.55)
-odaberi točne KPD šifre ("KPD_6") imaju različit, ali blizak naziv (npr. .01, .02,) - ali samo ako postoje u u dokumentu KPD_2025_struktura.json
-nikad ne koristi iste šifre koje si već dao u "KPD_6"
-Ne izmišljaj šifre ako ne postoje, nego ponudi šifre iz istog NKD podrazreda NKD_4 koje se slazu s KPD_6"
-uvijek ih vrati u formatu:
-"alternativne": [   {     "KPD_6": "xx.xx.xx",     "Naziv": "točan naziv iz dokumenta",     "kratko_zašto": "kratko objašnjenje zašto bi mogla biti relevantna"   } ]
+- Uvijek prvo provjeri postoji li glavni \`KPD_6\` u \`KPD_2025_struktura.json\`. Ako NE postoji → \`alternativne: []\` i postavi kratku poruku u \`Poruka\`.
+   - Alternativne moraju:
+     • Postojati u \`KPD_2025_struktura.json\`.
+     • Imati isti prefiks (prve 4 znamenke) kao glavni \`KPD_6\` — npr. \`47.55\`.
+     • Biti iz istog \`NKD_4\` kao glavni \`KPD_6\`.
+     • Ne smiju ponavljati glavni \`KPD_6\`.
+     • Biti nazivno/opisno bliske (npr. varijante .01, .02, .03 iste grupe).
+   - Vrati 1 do 3 kandidata. Ako ih je više, uzmi prve 3 po rastućem redoslijedu \`KPD_6\`.
+   - Za svaku alternativu vrati isključivo ova polja:
+     • "KPD_6": string (xx.xx.xx)
+     • "Naziv": string (točan službeni naziv iz dokumenta)
+     • "kratko_zasto": string (1 rečenica, max ~160 znakova, konkretan razlog)
+     - Potvrdi da svaki \`KPD_6\` iz \`alternativne\` postoji u dokumentu.
+   - Potvrdi isti prefiks i isti \`NKD_4\` kao glavni.
+   - Ukloni duplikate i glavni \`KPD_6\` iz \`alternativne\`.
 
 5. Kombinirane djelatnosti (prodaja + ugradnja / usluga + proizvod)
 Ako korisnički upit uključuje dvije različite radnje (npr. “prodaja i ugradnja”, “proizvodnja i montaža”, “usluga i prodaja”), obavezno pronađi dvije različite NKD i KPD domene:
