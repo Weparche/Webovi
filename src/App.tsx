@@ -618,7 +618,7 @@ export default function App() {
     <div className="rounded-lg border-2 p-3 border-green-500 dark:border-green-600 bg-white/80 dark:bg-slate-900/70 backdrop-blur">
       <div className="flex items-center gap-2 mb-1">
         <Badge className={`border ${h.kpd ? "border-green-600 text-green-700 dark:text-green-400" : "border-rose-600 text-rose-700 dark:text-rose-400"}`}>
-          {h.kpd ? "KPD — pronađeno" : "KPD — nije pronađeno"}
+          {h.kpd ? "KPD šifra — pronađeno" : "KPD šifra — nije pronađeno"}
         </Badge>
         <span className="text-sm font-semibold">{h.kpd ?? "∅"}</span>
       </div>
@@ -630,7 +630,7 @@ export default function App() {
     {/* NKD kartica */}
     <div className="rounded-lg border p-3">
       <div className="flex items-center gap-2 mb-1">
-        <Badge className="border border-green-600 text-green-700 dark:text-green-400">NKD</Badge>
+        <Badge className="border border-green-600 text-green-700 dark:text-green-400">NKD šifra</Badge>
         <span className="text-sm font-semibold">{h.nkd ?? "—"}</span>
       </div>
       <div className="text-sm text-slate-700 dark:text-slate-200">        
@@ -705,7 +705,7 @@ export default function App() {
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs uppercase text-slate-500">NKD</div>
+                    <div className="text-xs uppercase text-slate-500">NKD šifra</div>
                     <div className="text-sm font-semibold">{ex.NKD_4}</div>
                     <div className="text-xs text-slate-600 dark:text-slate-300">{ex.NKD_naziv}</div>
                   </div>                  
