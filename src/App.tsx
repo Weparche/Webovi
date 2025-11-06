@@ -271,9 +271,9 @@ export default function App() {
     {
       label: "Prodaja i ugradnja klima uređaja",
       KPD_6: "43.22.12",
-      KPD_naziv: "instalacijski radovi vodovoda, grijanja i klimatizacije",
+      KPD_naziv: "Radovi na uvođenju instalacija za grijanje, ventilaciju i klimatizaciju",
       NKD_4: "43.22.0",
-      NKD_naziv: "Ugradnja klima uređaja",      
+      NKD_naziv: "Uvođenje instalacija vodovoda, kanalizacije i plina te instalacija za grijanje i klimatizaciju",      
       Razlog_odabira:
         "Ugradnja klima uređaja spada u NKD 43.22.0 jer ovaj podrazred obuhvaća postavljanje, održavanje i popravak opreme i vodova za ventilaciju i klimatizaciju, uključujući sustave grijanja i klimatizacije . U KPD 2025, šifra 43.22.12 točno označava radove na uvođenju instalacija za grijanje, ventilaciju i klimatizaciju, što odgovara usluzi ugradnje klima uređaja .",
       alternativne: [
