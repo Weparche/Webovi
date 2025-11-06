@@ -661,7 +661,7 @@ export default function App() {
               <Badge className="border border-slate-300 dark:border-slate-700">KPD šifra</Badge>
               <span className="text-sm font-semibold">{alt.KPD_6 ?? "∅"}</span>
             </div>
-            <div className="text-sm text-slate-700 dark:text-slate-200 gap-2">
+            <div className="flex items-center gap-2 mb-1">
               <Badge className="border border-slate-300 dark:border-slate-700">Naziv</Badge>
               <span className="text-sm font-semibold">{alt.Naziv ?? "—"}</span>              
             </div>
