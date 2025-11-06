@@ -658,12 +658,12 @@ export default function App() {
             className="rounded-lg border p-3 bg-white/70 dark:bg-slate-900/60 backdrop-blur"
           >
             <div className="flex items-center gap-2 mb-1">
-              <Badge className="border border-slate-300 dark:border-slate-700">KPD</Badge>
+              <Badge className="border border-slate-300 dark:border-slate-700">KPD šifra</Badge>
               <span className="text-sm font-semibold">{alt.KPD_6 ?? "∅"}</span>
             </div>
             <div className="text-sm text-slate-700 dark:text-slate-200">
               <Badge className="border border-slate-300 dark:border-slate-700">Naziv</Badge>
-              {alt.Naziv ?? "—"}
+              <span className="text-sm font-semibold">{alt.Naziv ?? "—"}</span>              
             </div>
             {alt["kratko_zašto"] && (
               <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
